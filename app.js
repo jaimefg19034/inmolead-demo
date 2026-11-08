@@ -138,6 +138,24 @@ function csvParse(text){
  row.push(cell.replace(/\r$/,""));if(row.some(x=>x.trim()))rows.push(row);if(quoted)throw new Error("El CSV contiene comillas sin cerrar.");return rows;
 }
 function normHeader(s){return String(s||"").trim().toLocaleLowerCase("es").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[\s-]+/g,"_");}
+let pendingImport=null;
+async function showImportPreview(file,kind){
+ if(!file)return;
+ if(file.size>2*1024*1024)throw new Error("El fichero supera el límite de 2 MB.");
+ const rows=csvParse(await file.text());
+ if(rows.length<2)throw new Error("El CSV está vacío o solo contiene encabezados.");
+ const max=kind==="orders"?1001:5001;
+ if(rows.length>max)throw new Error("Se supera el máximo de "+(max-1).toLocaleString("es-ES")+" filas.");
+ const headers=rows[0],preview=rows.slice(1,7),dataCount=rows.length-1;
+ $("import-preview-title").textContent=kind==="orders"?"Vista previa de pedidos":"Vista previa del catálogo";
+ $("import-preview-file").textContent=file.name+" · "+(file.size/1024).toFixed(1)+" KB";
+ $("import-preview-summary").textContent=dataCount.toLocaleString("es-ES")+" filas de datos · "+headers.length+" columnas";
+ $("import-preview-content").innerHTML='<div class="table-wrap import-preview-table"><table class="lines"><thead><tr>'+headers.map(h=>"<th>"+esc(h||"(sin nombre)")+"</th>").join("")+'</tr></thead><tbody>'+preview.map(row=>'<tr>'+headers.map((_,i)=>"<td>"+esc(row[i]??"")+"</td>").join("")+'</tr>').join("")+'</tbody></table></div>';
+ $("import-preview-more").textContent=dataCount>preview.length?"Mostrando las primeras "+preview.length+" filas de "+dataCount+".":"Se muestran todas las filas.";
+ $("import-preview-note").textContent="La validación de columnas, cantidades, precios y duplicados se ejecutará al confirmar. Las filas rechazadas se descargarán en un informe separado.";
+ pendingImport={file,kind};
+ $("import-preview-dialog").showModal();
+}
 function validateCsvHeaders(headers){
  const normalized=headers.map(normHeader),empty=normalized.findIndex(h=>!h);
  if(empty>=0)throw new Error("La columna "+(empty+1)+" no tiene nombre. Corrige el encabezado.");
@@ -219,14 +237,26 @@ $("product-form").addEventListener("submit",e=>{if(e.submitter?.id!=="save-produ
 $("catalog-export").onclick=catalogCsvExport;$("catalog-export-xlsx").onclick=exportCatalogXlsx;
 $("catalog-import").onclick=()=>$("catalog-file").click();
 $("catalog-template").onclick=()=>downloadFile("plantilla-catalogo-pedidoclaro.csv","referencia;producto;unidad;precio_unitario\nTOR-INOX-550;Tornillo inox A2 5x50;caja;18.50\nSIL-NEU-BLA;Silicona neutra blanca 300 ml;ud.;4.10\n","text/csv;charset=utf-8");
-$("catalog-file").onchange=async e=>{try{await catalogCsvImport(e.target.files[0]);}catch(err){notify(err.message||"No se pudo importar el catálogo.");}finally{e.target.value="";}};
+$("catalog-file").onchange=async e=>{try{await showImportPreview(e.target.files[0],"catalog");}catch(err){notify(err.message||"No se pudo leer el CSV.");e.target.value="";}};
+
+$("import-preview-cancel").onclick=()=>{pendingImport=null;$("import-preview-dialog").close();$("csv-file").value="";$("catalog-file").value="";};
+$("import-preview-confirm").onclick=async()=>{
+ if(!pendingImport)return;
+ const task=pendingImport;pendingImport=null;$("import-preview-dialog").close();
+ const input=task.kind==="orders"?$("csv-file"):$("catalog-file");
+ try{if(task.kind==="orders")await importCsvFile(task.file);else await catalogCsvImport(task.file);}
+ catch(err){notify(err.message||"No se pudo completar la importación.");}
+ finally{input.value="";}
+};
+$("import-preview-dialog").addEventListener("cancel",()=>{pendingImport=null;$("csv-file").value="";$("catalog-file").value="";});
+
 $("new-order").onclick=()=>{$("order-dialog").showModal();$("client-name").focus();};
 $("order-form").addEventListener("submit",e=>{if(e.submitter?.id!=="create-order")return;e.preventDefault();const client=$("client-name").value.trim();if(!client){notify("Introduce un cliente ficticio.");return;}$("order-dialog").close();addOrder(client,$("channel").value,[{name:"Material eléctrico surtido",sku:"MAT-SURT-01",qty:5,unit:"caja",price:22.5,issue:"Confirma la composición del surtido",checked:false},{name:"Accesorios de instalación",sku:"ACC-INST-02",qty:3,unit:"lote",price:14,issue:"Confirma el contenido del lote",checked:false}]);});
 $("parse-order").onclick=parseText;$("export-all").onclick=()=>state.orders.length?exportCsv(state.orders):notify("No hay pedidos que exportar.");$("export-all-xlsx").onclick=()=>state.orders.length?exportOrdersXlsx(state.orders):notify("No hay pedidos que exportar.");$("clear-activity").onclick=()=>{if(!confirm("¿Limpiar el historial local?"))return;state.activity=[];persist();renderActivity();};
 document.querySelectorAll(".navbtn").forEach(b=>b.onclick=()=>view(b.dataset.view));
 
 $("import-csv").onclick=()=>$("csv-file").click();
-$("csv-file").onchange=async e=>{try{await importCsvFile(e.target.files[0]);}catch(err){notify(err.message||"No se pudo importar el CSV.");}finally{e.target.value="";}};
+$("csv-file").onchange=async e=>{try{await showImportPreview(e.target.files[0],"orders");}catch(err){notify(err.message||"No se pudo leer el CSV.");e.target.value="";}};
 $("csv-template").onclick=()=>downloadFile("plantilla-pedidoclaro.csv","pedido;cliente;referencia;producto;cantidad;unidad;precio_unitario\nPED-001;Ferreteria Ejemplo;TOR-INOX-550;Tornillo inox A2 5x50;12;caja;18.50\nPED-001;Ferreteria Ejemplo;SIL-NEU-BLA;Silicona neutra blanca 300 ml;24;ud.;4.10\n","text/csv;charset=utf-8");
 $("backup-data").onclick=backupData;
 $("restore-data").onclick=()=>$("backup-file").click();
