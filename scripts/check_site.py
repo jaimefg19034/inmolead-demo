@@ -58,7 +58,7 @@ def main():
         raise SystemExit("La importación CSV modifica el estado antes de preparar todos los pedidos")
     for token in ('id="view-catalog"', 'id="catalog-import"', 'id="catalog-export"', 'id="product-dialog"'):
         if token not in source: raise SystemExit("Falta catálogo: "+token)
-    for token in ("catalogSeed", "function renderCatalog", "function catalogCsvExport", "function catalogCsvImport", "const nextCatalog=state.catalog.map(p=>({...p}))", "state.catalog=nextCatalog", "catalog-file", "catalogProduct", "Precio distinto al catálogo", "data-catalog-apply", "data-product-edit", "editingCatalogSku", "duplicateSku", "Referencia repetida en el pedido", "product?.price??r.price", "const importBatch=", 'sourceRef=get("order")||"Importación sin número"', "sourceId:key", "JSON.stringify([source,client])", "v>999999", "const orderIds=new Set(),sourceIds=new Set()", "catalogSkus=new Set()", "referencias SKU duplicadas"):
+    for token in ("catalogSeed", "function renderCatalog", "function catalogCsvExport", "function catalogCsvImport", "nextCatalog=state.catalog.map(p=>({...p}))", "state.catalog=nextCatalog", "catalog-file", "catalogProduct", "Precio distinto al catálogo", "data-catalog-apply", "data-product-edit", "editingCatalogSku", "duplicateSku", "Referencia repetida en el pedido", "product?.price??r.price", "const importBatch=", 'sourceRef=get("order")||"Importación sin número"', "sourceId:key", "JSON.stringify([source,client])", "v>999999", "const orderIds=new Set(),sourceIds=new Set()", "catalogSkus=new Set()", "referencias SKU duplicadas"):
         if token not in js: raise SystemExit("Falta funcionalidad catálogo: "+token)
     for token in ('data-view="clients"','data-view="analytics"'):
         if token not in source: raise SystemExit("Falta navegación: "+token)
@@ -68,6 +68,22 @@ def main():
         for name in ["app.js","sw.js"]:
             result=subprocess.run([node,"--check",str(ROOT/name)],text=True,capture_output=True)
             if result.returncode: print(result.stderr,file=sys.stderr); raise SystemExit(name+": error de sintaxis")
+        parser_start=js.index("function csvParse(text){")
+        parser_end=js.index("\\nfunction normHeader",parser_start)
+        parser=js[parser_start:parser_end]
+        tests=parser+"""
+const assert=require("node:assert/strict");
+assert.deepEqual(csvParse('sku;name\\r\\n1;"Cafe; molido"'),[['sku','name'],['1','Cafe; molido']]);
+assert.deepEqual(csvParse('sku,name\\n1,"Cafe ""premium"""'),[['sku','name'],['1','Cafe "premium"']]);
+assert.deepEqual(csvParse('sku;name\\n1;"Linea 1\\nLinea 2"'),[['sku','name'],['1','Linea 1\\nLinea 2']]);
+assert.deepEqual(csvParse('a;b\\n1;'),[['a','b'],['1','']]);
+assert.throws(()=>csvParse('a;b\\n1;"ab'),/comillas sin cerrar/);
+assert.throws(()=>csvParse('a;b\\n1;ab"cd'),/comilla dentro/);
+assert.throws(()=>csvParse('a;b\\n1;"ab"x'),/caracteres después/);
+console.log('CSV parser tests OK');
+"""
+        result=subprocess.run([node,"-e",tests],text=True,capture_output=True)
+        if result.returncode: print(result.stderr,file=sys.stderr); raise SystemExit("Pruebas del parser CSV fallidas")
         for number,inline in enumerate(p.scripts,1):
             result=subprocess.run([node,"--check","-"],input=inline,text=True,capture_output=True)
             if result.returncode: print(result.stderr,file=sys.stderr); raise SystemExit(f"JavaScript inline {number}: error")

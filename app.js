@@ -349,9 +349,26 @@ function downloadFile(name,content,type){const blob=new Blob([content],{type}),u
 function csvParse(text){
  const first=(text.split(/\r?\n/,1)[0]||"");let delimiter=";",best=-1;
  for(const d of [";",",","\t"]){let n=0,q=false;for(let i=0;i<first.length;i++){if(first[i]==='"'){if(q&&first[i+1]==='"'){i++;continue;}q=!q;}else if(first[i]===d&&!q)n++;}if(n>best){best=n;delimiter=d;}}
- const rows=[];let row=[],cell="",quoted=false;
- for(let i=0;i<text.length;i++){const c=text[i];if(quoted){if(c==='"'&&text[i+1]==='"'){cell+='"';i++;}else if(c==='"')quoted=false;else cell+=c;}else if(c==='"')quoted=true;else if(c===delimiter){row.push(cell);cell="";}else if(c==="\n"){row.push(cell.replace(/\r$/,""));if(row.some(x=>x.trim()))rows.push(row);row=[];cell="";}else cell+=c;}
- row.push(cell.replace(/\r$/,""));if(row.some(x=>x.trim()))rows.push(row);if(quoted)throw new Error("El CSV contiene comillas sin cerrar.");return rows;
+ const rows=[];let row=[],cell="",quoted=false,closedQuote=false;
+ const endRow=()=>{row.push(cell.replace(/\r$/,""));if(row.some(x=>x.trim()))rows.push(row);row=[];cell="";closedQuote=false;};
+ for(let i=0;i<text.length;i++){
+  const c=text[i];
+  if(quoted){if(c==='"'&&text[i+1]==='"'){cell+='"';i++;}else if(c==='"'){quoted=false;closedQuote=true;}else cell+=c;continue;}
+  if(closedQuote){
+   if(c===delimiter){row.push(cell);cell="";closedQuote=false;}
+   else if(c==="\n")endRow();
+   else if(c==="\r"&&text[i+1]==="\n"){/* CRLF: newline handled on next iteration */}
+   else if(c===" "||c==="\t"){}
+   else throw new Error("El CSV contiene caracteres después de una comilla de cierre.");
+   continue;
+  }
+  if(c==='"'){if(cell.length)throw new Error("El CSV contiene una comilla dentro de un campo sin escapar.");quoted=true;}
+  else if(c===delimiter){row.push(cell);cell="";}
+  else if(c==="\n")endRow();
+  else cell+=c;
+ }
+ if(quoted)throw new Error("El CSV contiene comillas sin cerrar.");
+ row.push(cell.replace(/\r$/,""));if(row.some(x=>x.trim()))rows.push(row);return rows;
 }
 function normHeader(s){return String(s||"").replace(/^\uFEFF/,"").trim().toLocaleLowerCase("es").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[\s-]+/g,"_");}
 let pendingImport=null;
