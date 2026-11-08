@@ -1899,3 +1899,18 @@ body,.app{background:#f3f5f8!important;color:#26364a!important}
 #import-preview-dialog .import-wizard-actions .btn:focus-visible{outline:3px solid #397dbb!important;outline-offset:3px!important}
 #import-preview-dialog .import-wizard-actions .btn:disabled{background:#e8edf2!important;color:#627286!important;border-color:#d2dae3!important;opacity:1!important;filter:none!important}
 @media(max-width:680px){#import-preview-dialog .import-audit-table{min-width:650px}#import-preview-dialog .import-audit-table th{font-size:9px}#import-preview-dialog .import-audit-table td{padding:11px 10px}}
+
+
+/* v47 · Acciones de pedido: duplicado claro y adaptable */
+#view-orders #duplicate-order{
+ background:#f1f5fa!important;
+ border:1px solid #cbd7e4!important;
+ color:#2e4d6e!important;
+}
+#view-orders #duplicate-order:hover{background:#e7eef6!important;border-color:#aebfd2!important}
+#view-orders #duplicate-order:focus-visible{outline:3px solid #397dbb!important;outline-offset:3px!important}
+@media(max-width:760px){
+ #view-orders .detail-actions>div{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+ #view-orders .detail-actions>div .btn{min-width:0}
+ #view-orders #duplicate-order{grid-column:1/-1}
+}
