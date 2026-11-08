@@ -219,3 +219,63 @@ dialog{max-height:calc(100dvh - 32px);overflow:auto}
 .analytics-top-row b{overflow-wrap:anywhere}
 @media(max-width:760px){.analytics-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-layout{grid-template-columns:1fr}}
 @media(max-width:420px){.analytics-kpis .stat{padding:11px}.analytics-kpis .stat strong{font-size:19px}}
+
+/* Visual refresh: client portfolio and analytics */
+.client-overview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:0 0 16px}
+.client-kpi{display:flex;align-items:center;gap:13px;padding:18px 19px;background:#fff;border:1px solid #e7ecf3;border-radius:15px;box-shadow:0 8px 24px rgba(25,43,72,.04)}
+.client-kpi-icon{width:42px;height:42px;display:grid;place-items:center;flex:0 0 42px;border-radius:13px;background:#edf2ff;color:#315eea;font-size:19px;font-weight:700}
+.client-kpi small{display:block;color:#75839a;font-size:10px;margin-bottom:5px}
+.client-kpi strong{display:block;color:#17243a;font-size:20px;letter-spacing:-.5px}
+.client-highlights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.client-highlight{position:relative;display:grid;grid-template-columns:40px minmax(0,1fr);gap:10px 12px;align-items:center;padding:16px;background:linear-gradient(145deg,#fff,#f9fbff);border:1px solid #e7ecf3;border-radius:14px;box-shadow:0 6px 20px rgba(25,43,72,.035);overflow:hidden}
+.client-avatar,.client-mini-avatar{display:grid;place-items:center;border-radius:12px;background:#eaf0ff;color:#315eea;font-weight:800}
+.client-avatar{width:40px;height:40px;font-size:16px}
+.client-highlight-main{min-width:0}
+.client-highlight-main small{display:block;color:#8190a5;font-size:8px;letter-spacing:1.1px;margin-bottom:3px}
+.client-highlight-main b{display:block;color:#24344d;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.client-highlight-main span{display:block;color:#8793a5;font-size:9px;margin-top:4px}
+.client-highlight>strong{grid-column:1/-1;font-size:17px;letter-spacing:-.4px;color:#17243a}
+.client-progress{grid-column:1/-1;height:5px;background:#e9eef6;border-radius:9px;overflow:hidden}
+.client-progress i{display:block;height:100%;background:linear-gradient(90deg,#3868f2,#6c8df7);border-radius:9px}
+.client-name-cell{display:flex;align-items:center;gap:9px;min-width:150px}
+.client-mini-avatar{width:29px;height:29px;flex:0 0 29px;font-size:10px}
+.metric-chip{display:inline-flex;min-width:25px;justify-content:center;padding:4px 7px;border-radius:7px;font-size:10px;font-weight:700}
+.metric-chip.pending{background:#fff4df;color:#a66b16}
+.metric-chip.neutral{background:#f0f3f7;color:#68778d}
+.approved-value{color:#18865d}
+.analytics-kpis{gap:14px}
+.analytics-stat{min-height:145px;padding:17px 18px;background:linear-gradient(150deg,#fff 55%,#f7f9ff);border-color:#e6ebf4}
+.analytics-stat-head{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#687991;font-size:10px;font-weight:650}
+.analytics-stat-head i{display:grid;place-items:center;width:31px;height:31px;border-radius:10px;background:#edf2ff;color:#315eea;font-size:15px;font-style:normal}
+.analytics-stat strong{display:block;margin:13px 0 4px;font-size:clamp(20px,2vw,27px);letter-spacing:-1px;color:#17243a}
+.analytics-stat small{display:block;color:#8491a4;font-size:9px}
+.analytics-stat-foot{display:flex;align-items:center;gap:6px;margin-top:12px;color:#8a96a8;font-size:8px}
+.success-dot,.warning-dot{width:6px;height:6px;border-radius:50%;display:inline-block;background:#2caa78}
+.warning-dot{background:#e6a23c}
+.analytics-layout{align-items:stretch}
+.analytics-layout>.panel{min-width:0}
+.analytics-status,.analytics-top{padding:8px 20px 18px}
+.status-total{display:flex;align-items:baseline;gap:8px;padding:6px 0 15px}
+.status-total strong{font-size:30px;letter-spacing:-1px;color:#17243a}
+.status-total span{font-size:10px;color:#8290a3}
+.status-stack{display:flex;gap:3px;height:9px;overflow:hidden;border-radius:10px;background:#edf1f6;margin-bottom:12px}
+.status-segment{display:block;height:100%;min-width:0}
+.seg-0{background:#e6a23c}.seg-1{background:#2caa78}.seg-2{background:#9aa8bb}
+.analytics-status-row{padding:11px 0;font-size:10px;color:#596a82}
+.analytics-status-row>span{display:flex;align-items:center;gap:8px}
+.analytics-status-row b{font-size:11px;color:#24344d}
+.analytics-status-row b small{font-size:9px;color:#8b98a9;font-weight:500}
+.status-legend-dot{width:8px;height:8px;border-radius:3px;display:inline-block}
+.seg-dot-0{background:#e6a23c}.seg-dot-1{background:#2caa78}.seg-dot-2{background:#9aa8bb}
+.analytics-issues{display:flex;align-items:center;justify-content:space-between;margin-top:7px;padding:12px;border-radius:9px;background:#f6f8fc;color:#67778e;font-size:10px}
+.analytics-issues b{font-size:14px;color:#24344d}
+.analytics-top-row{display:grid;grid-template-columns:minmax(100px,1.2fr) minmax(55px,1fr) auto;gap:12px;padding:13px 0}
+.analytics-top-row>span{min-width:0}
+.analytics-top-row b{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.analytics-top-row i{width:25px;height:25px;flex:0 0 25px}
+.analytics-bar-wrap{height:6px;background:#edf1f7;border-radius:8px;overflow:hidden}
+.analytics-bar-wrap i{display:block;height:100%;background:linear-gradient(90deg,#3868f2,#7895fa);border-radius:8px}
+.analytics-top-row strong{font-size:10px;white-space:nowrap}
+@media(max-width:900px){.client-highlights{grid-template-columns:1fr}.client-highlight{grid-template-columns:40px minmax(0,1fr) auto}.client-highlight>strong{grid-column:3;grid-row:1}.client-progress{grid-column:1/-1}}
+@media(max-width:760px){.client-overview{grid-template-columns:1fr 1fr}.client-overview .client-kpi:last-child{grid-column:1/-1}.analytics-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-stat{min-height:132px}.analytics-layout{grid-template-columns:1fr}}
+@media(max-width:430px){.client-kpi{padding:13px;gap:9px}.client-kpi-icon{width:34px;height:34px;flex-basis:34px}.client-kpi strong{font-size:17px}.analytics-top-row{grid-template-columns:minmax(90px,1fr) 55px auto;gap:8px}.analytics-stat{padding:13px}.analytics-stat strong{font-size:19px}}
