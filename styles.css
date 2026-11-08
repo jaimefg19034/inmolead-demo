@@ -114,3 +114,14 @@ dialog{border:0;border-radius:18px;padding:26px}
  .detail-actions .btn{font-size:9px;padding:9px}
 }
 @media(prefers-reduced-motion:no-preference){.panel,.stat{transition:box-shadow .2s,transform .2s}.panel:hover,.stat:hover{box-shadow:0 13px 35px rgba(25,43,72,.075)}}
+
+
+/* Product catalog */
+.catalog-table-wrap{padding:0 18px 18px}
+.catalog-table{min-width:560px}
+.catalog-table td{font-size:11px}
+.catalog-table td:first-child{color:#3d5681}
+.catalog-table td:nth-child(4){font-weight:700;white-space:nowrap}
+.product-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.product-form-grid label{min-width:0}
+@media(max-width:480px){.product-form-grid{grid-template-columns:1fr}}
