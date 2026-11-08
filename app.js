@@ -160,20 +160,26 @@ function renderAnalytics(){
 
 function renderDashboardCharts(){
  const groups=[
-  {label:"Por revisar / listos",key:"pending",orders:state.orders.filter(o=>["review","ready"].includes(o.status)),color:"amber"},
-  {label:"Aprobados",key:"approved",orders:state.orders.filter(o=>o.status==="approved"),color:"green"},
-  {label:"Descartados",key:"rejected",orders:state.orders.filter(o=>o.status==="rejected"),color:"slate"}
+  {label:"Por revisar / listos",orders:state.orders.filter(o=>["review","ready"].includes(o.status)),color:"amber"},
+  {label:"Aprobados",orders:state.orders.filter(o=>o.status==="approved"),color:"green"},
+  {label:"Descartados",orders:state.orders.filter(o=>o.status==="rejected"),color:"slate"}
  ];
- const total=state.orders.length,maxCount=Math.max(1,...groups.map(g=>g.orders.length)),maxValue=Math.max(1,...groups.map(g=>g.orders.reduce((n,o)=>n+sum(o),0)));
- const pending=groups[0].orders.length,approved=groups[1].orders.length,p1=total?pending/total*100:0,p2=total?approved/total*100:0;
+ const total=state.orders.length;
+ const totals=groups.map(g=>({ ...g,count:g.orders.length,value:g.orders.reduce((n,o)=>n+sum(o),0)}));
+ const maxCount=Math.max(1,...totals.map(g=>g.count)),maxValue=Math.max(1,...totals.map(g=>g.value));
+ const pending=totals[0].count,approved=totals[1].count,p1=total?pending/total*100:0,p2=total?approved/total*100:0;
  const donut="conic-gradient(#e6a23c 0 "+p1+"%,#2caa78 "+p1+"% "+(p1+p2)+"%,#aab5c5 "+(p1+p2)+"% 100%)";
- const countBars=groups.map(g=>'<div class="dash-metric-row"><span>'+g.label+'</span><div class="dash-track"><i class="dash-fill '+g.color+'" style="width:'+Math.max(g.orders.length?3:0,g.orders.length/maxCount*100)+'%"></i></div><b>'+g.orders.length+'</b></div>').join("");
- const valueBars=groups.map(g=>{const value=g.orders.reduce((n,o)=>n+sum(o),0);return '<div class="dash-metric-row"><span>'+g.label+'</span><div class="dash-track"><i class="dash-fill '+g.color+'" style="width:'+Math.max(value?3:0,value/maxValue*100)+'%"></i></div><b>'+money(value)+'</b></div>';}).join("");
- $("dashboard-status").innerHTML=total?'<div class="status-chart-layout"><div class="status-donut" style="background:'+donut+'"><div class="status-donut-hole"><strong>'+total+'</strong><small>PEDIDOS</small></div></div><div class="status-chart-legend">'+groups.map((g,i)=>'<div class="status-legend-row"><span><i class="status-legend-dot seg-dot-'+i+'"></i>'+g.label+'</span><b>'+g.orders.length+'</b></div>').join("")+'</div></div><div class="dashboard-metric-charts"><div><div class="dash-chart-title">Pedidos por estado</div>'+countBars+'</div><div><div class="dash-chart-title">Valor por estado</div>'+valueBars+'</div></div>':'<div class="dashboard-empty">Aún no hay pedidos. Importa un CSV o crea un pedido de demostración para generar las gráficas.</div>';
- const top=clientSummary().slice(0,5),max=Math.max(1,...top.map(x=>x.total));
- $("dashboard-clients").innerHTML=top.length?'<div class="dashboard-client-total"><span>Clientes con actividad</span><strong>'+clientSummary().length+'</strong></div>'+top.map((x,i)=>'<div class="analytics-top-row"><span><i>'+(i+1)+'</i><b>'+esc(x.name)+'</b></span><div class="analytics-bar-wrap"><i style="width:'+Math.max(3,x.total/max*100)+'%"></i></div><strong>'+money(x.total)+'</strong></div>').join(""):'<div class="dashboard-empty">Cuando haya pedidos, aquí verás los clientes con mayor volumen.</div>';
+ const legend=totals.map((g,i)=>'<div class="status-legend-row"><span><i class="status-legend-dot seg-dot-'+i+'"></i>'+g.label+'</span><b>'+g.count+' <small>'+Math.round(total?g.count/total*100:0)+'%</small></b></div>').join("");
+ const countBars=totals.map(g=>'<div class="dash-metric-row"><span>'+g.label+'</span><div class="dash-track"><i class="dash-fill '+g.color+'" style="width:'+(g.count?Math.max(4,g.count/maxCount*100):0)+'%"></i></div><b>'+g.count+'</b></div>').join("");
+ const valueBars=totals.map(g=>'<div class="dash-metric-row"><span>'+g.label+'</span><div class="dash-track"><i class="dash-fill '+g.color+'" style="width:'+(g.value?Math.max(4,g.value/maxValue*100):0)+'%"></i></div><b>'+money(g.value)+'</b></div>').join("");
+ $("dashboard-status").innerHTML=total
+  ?'<div class="dash-status-overview"><div class="status-chart-layout"><div class="status-donut" style="background:'+donut+'"><div class="status-donut-hole"><strong>'+total+'</strong><small>PEDIDOS</small></div></div><div class="status-chart-legend">'+legend+'</div></div><div class="dashboard-metric-charts"><div><div class="dash-chart-title">NÚMERO DE PEDIDOS</div>'+countBars+'</div><div><div class="dash-chart-title">VALOR ACUMULADO</div>'+valueBars+'</div></div></div>'
+  :'<div class="dashboard-empty"><b>Aún no hay pedidos</b><span>Importa una plantilla o crea un pedido de demostración para activar las gráficas.</span></div>';
+ const clients=clientSummary().slice(0,5),max=Math.max(1,...clients.map(x=>x.total));
+ $("dashboard-clients").innerHTML=clients.length
+  ?'<div class="dashboard-client-total"><span>Clientes con actividad</span><strong>'+clientSummary().length+'</strong></div><div class="dash-client-list">'+clients.map((x,i)=>'<div class="dash-client-row"><div class="dash-client-rank">'+String(i+1).padStart(2,"0")+'</div><div class="dash-client-info"><div><b>'+esc(x.name)+'</b><span>'+x.orders+' pedido'+(x.orders===1?"":"s")+'</span></div><div class="dash-client-track"><i style="width:'+Math.max(3,x.total/max*100)+'%"></i></div></div><strong>'+money(x.total)+'</strong></div>').join("")+'</div>'
+  :'<div class="dashboard-empty"><b>Sin actividad de clientes</b><span>El ranking aparecerá cuando haya pedidos en la bandeja.</span></div>';
 }
-
 function downloadFile(name,content,type){const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 function csvParse(text){
  const first=(text.split(/\r?\n/,1)[0]||"");let delimiter=";",best=-1;
