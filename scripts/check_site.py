@@ -39,6 +39,13 @@ def main():
     if "CACHE_NAME" not in sw or "PedidoClaro" not in manifest.get("name",""): raise SystemExit("PWA incompleta")
     restore_guard='if(!l||typeof l!=="object"||Array.isArray(l))throw new Error("Línea inválida en "'
     if restore_guard not in js: raise SystemExit("Falta la validación defensiva de líneas en copias JSON")
+    restore_start=js.index("async function restoreData(file){")
+    restore_end=js.index("function initHelpCenter(){",restore_start)
+    restore=js[restore_start:restore_end]
+    for token in ("const nextState={...state,orders:restoredOrders", "backupData();", "state=nextState;", "if(!l||typeof l!==\\"object\\"||Array.isArray(l))", "if(data.catalog!==undefined&&!Array.isArray(data.catalog))", "const cleanRules=cleanRuleSet(data.rules||defaultRules)"):
+        if token not in restore: raise SystemExit("Falta protección en la restauración de copias: "+token)
+    if restore.index("const nextState=")>restore.index("if(!confirm(") or restore.index("state=nextState;")<restore.index("backupData();"):
+        raise SystemExit("La restauración no prepara los datos antes de sustituir el estado")
     if "audit.issues=audit.rows.filter" not in js or "pendingImport.audit.issues" not in js or "Descargar incidencias" not in source: raise SystemExit("Falta la exportación completa de incidencias CSV")
     for token in ('id="view-catalog"', 'id="catalog-import"', 'id="catalog-export"', 'id="product-dialog"'):
         if token not in source: raise SystemExit("Falta catálogo: "+token)

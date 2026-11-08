@@ -503,30 +503,59 @@ function backupData(){
  log("Descargó una copia de seguridad local");notify("Copia JSON descargada.");
 }
 async function restoreData(file){
- if(!file)return;if(file.size>8*1024*1024)throw new Error("La copia supera el límite de 8 MB.");
- const data=JSON.parse(await file.text());if(data.app!=="PedidoClaro"||data.version!==2||!Array.isArray(data.orders)||!Array.isArray(data.activity))throw new Error("El fichero no es una copia válida de PedidoClaro v2.");
+ if(!file)return;
+ if(file.size>8*1024*1024)throw new Error("La copia supera el límite de 8 MB.");
+ let data;
+ try{data=JSON.parse(await file.text());}catch{throw new Error("El archivo no contiene un JSON válido.");}
+ if(!data||typeof data!=="object"||Array.isArray(data)||data.app!=="PedidoClaro"||data.version!==2||!Array.isArray(data.orders)||!Array.isArray(data.activity))throw new Error("El fichero no es una copia válida de PedidoClaro v2.");
  if(data.orders.length>5000||data.activity.length>1000)throw new Error("La copia contiene demasiados registros.");
  const cleanOrders=data.orders.map((o,i)=>{
-  if(!o||typeof o!=="object"||!Array.isArray(o.lines)||o.lines.length>100)throw new Error("Pedido inválido en la copia (registro "+(i+1)+").");
+  if(!o||typeof o!=="object"||Array.isArray(o)||!Array.isArray(o.lines)||o.lines.length<1||o.lines.length>100)throw new Error("Pedido inválido en la copia (registro "+(i+1)+").");
   const status=["review","ready","approved","rejected"].includes(o.status)?o.status:"review";
-  const lines=o.lines.map(l=>{if(!l||typeof l!=="object"||Array.isArray(l))throw new Error("Línea inválida en "+String(o.id||"pedido")+".");const qty=Number(l.qty),price=Number(l.price);if(!String(l.name||"").trim()||!String(l.sku||"").trim()||!Number.isInteger(qty)||qty<1||qty>999999||!Number.isFinite(price)||price<0||price>999999)throw new Error("Línea inválida en "+String(o.id||"pedido")+".");return {name:String(l.name).slice(0,160),sku:String(l.sku).slice(0,80),qty,unit:String(l.unit||"ud.").slice(0,30),price:Math.round(price*100)/100,issue:String(l.issue||"").slice(0,240),checked:l.checked===true,reviewedAt:String(l.reviewedAt||"").slice(0,40)};});
-  return {id:String(o.id||"").slice(0,40),sourceId:o.sourceId?String(o.sourceId).slice(0,240):undefined,sourceRef:o.sourceRef?String(o.sourceRef).slice(0,100):undefined,client:String(o.client||"Cliente").slice(0,120),date:String(o.date||"Restaurado").slice(0,80),channel:String(o.channel||"Copia restaurada").slice(0,80),notes:String(o.notes||"").slice(0,2000),status,lines};
+  const lines=o.lines.map(l=>{
+   if(!l||typeof l!=="object"||Array.isArray(l))throw new Error("Línea inválida en "+String(o.id||"pedido")+".");
+   const qty=Number(l.qty),price=Number(l.price);
+   if(typeof l.name!=="string"||!l.name.trim()||typeof l.sku!=="string"||!l.sku.trim()||!Number.isInteger(qty)||qty<1||qty>999999||!Number.isFinite(price)||price<0||price>999999)throw new Error("Línea inválida en "+String(o.id||"pedido")+".");
+   return {name:l.name.slice(0,160),sku:l.sku.slice(0,80),qty,unit:String(l.unit||"ud.").slice(0,30),price:Math.round(price*100)/100,issue:String(l.issue||"").slice(0,240),checked:l.checked===true,reviewedAt:String(l.reviewedAt||"").slice(0,40)};
+  });
+  if(typeof o.id!=="string"||!o.id.trim())throw new Error("La copia contiene un pedido sin número válido (registro "+(i+1)+").");
+  if(o.sourceId!==undefined&&o.sourceId!==null&&typeof o.sourceId!=="string")throw new Error("Identificador de origen inválido en "+o.id+".");
+  return {id:o.id.slice(0,40),sourceId:o.sourceId?o.sourceId.slice(0,240):undefined,sourceRef:o.sourceRef?String(o.sourceRef).slice(0,100):undefined,client:String(o.client||"Cliente").slice(0,120),date:String(o.date||"Restaurado").slice(0,80),channel:String(o.channel||"Copia restaurada").slice(0,80),notes:String(o.notes||"").slice(0,2000),status,lines};
  });
  const orderIds=new Set(),sourceIds=new Set();
  for(const o of cleanOrders){
-  if(!o.id||orderIds.has(o.id))throw new Error("La copia contiene números de pedido vacíos o repetidos: "+(o.id||"(vacío)")+".");
+  if(orderIds.has(o.id))throw new Error("La copia contiene números de pedido repetidos: "+o.id+".");
   orderIds.add(o.id);
   if(o.sourceId){if(sourceIds.has(o.sourceId))throw new Error("La copia contiene una importación de origen duplicada: "+o.sourceId+".");sourceIds.add(o.sourceId);}
  }
- const cleanActivity=data.activity.map(a=>({message:String(a?.message||"Actividad").slice(0,240),id:String(a?.id||"").slice(0,40),time:String(a?.time||"").slice(0,80)}));
- const cleanCatalog=Array.isArray(data.catalog)?data.catalog.map(p=>{const price=Number(p?.price);if(!p||!String(p.sku||"").trim()||!String(p.name||"").trim()||!Number.isFinite(price)||price<0||price>999999)throw new Error("Producto inválido en la copia.");return {sku:String(p.sku).slice(0,80),name:String(p.name).slice(0,160),unit:String(p.unit||"ud.").slice(0,30),price:Math.round(price*100)/100};}):JSON.parse(JSON.stringify(catalogSeed));
+ const cleanActivity=data.activity.map((a,i)=>{
+  if(!a||typeof a!=="object"||Array.isArray(a))throw new Error("Registro de actividad inválido (registro "+(i+1)+").");
+  return {message:String(a.message||"Actividad").slice(0,240),id:String(a.id||"").slice(0,40),time:String(a.time||"").slice(0,80)};
+ });
+ if(data.catalog!==undefined&&!Array.isArray(data.catalog))throw new Error("El catálogo de la copia tiene un formato incorrecto.");
+ const cleanCatalog=Array.isArray(data.catalog)?data.catalog.map(p=>{
+  if(!p||typeof p!=="object"||Array.isArray(p))throw new Error("Producto inválido en la copia.");
+  const price=Number(p.price);
+  if(typeof p.sku!=="string"||!p.sku.trim()||typeof p.name!=="string"||!p.name.trim()||!Number.isFinite(price)||price<0||price>999999)throw new Error("Producto inválido en la copia.");
+  return {sku:p.sku.slice(0,80),name:p.name.slice(0,160),unit:String(p.unit||"ud.").slice(0,30),price:Math.round(price*100)/100};
+ }):JSON.parse(JSON.stringify(catalogSeed));
  if(cleanCatalog.length>5000)throw new Error("La copia contiene demasiados productos.");
  const catalogSkus=new Set();
  for(const p of cleanCatalog){const key=p.sku.toLocaleLowerCase("es");if(catalogSkus.has(key))throw new Error("La copia contiene referencias SKU duplicadas: "+p.sku+".");catalogSkus.add(key);}
- const cleanCustomerRules={};if(data.customerRules&&typeof data.customerRules==="object"&&!Array.isArray(data.customerRules)){const entries=Object.entries(data.customerRules);if(entries.length>1000)throw new Error("La copia contiene demasiadas reglas de clientes.");for(const [name,rules] of entries){const key=clientKey(name);if(!key||!rules||typeof rules!=="object"||Array.isArray(rules))throw new Error("Regla de cliente inválida en la copia.");cleanCustomerRules[key]=cleanRuleSet(rules);}}
+ if(data.rules!==undefined&&(!data.rules||typeof data.rules!=="object"||Array.isArray(data.rules)))throw new Error("Las reglas generales de la copia tienen un formato incorrecto.");
+ const cleanRules=cleanRuleSet(data.rules||defaultRules);
+ const cleanCustomerRules={};
+ if(data.customerRules!==undefined&&(!data.customerRules||typeof data.customerRules!=="object"||Array.isArray(data.customerRules)))throw new Error("Las reglas de clientes de la copia tienen un formato incorrecto.");
+ if(data.customerRules){const entries=Object.entries(data.customerRules);if(entries.length>1000)throw new Error("La copia contiene demasiadas reglas de clientes.");for(const [name,rules] of entries){const key=clientKey(name);if(!key||!rules||typeof rules!=="object"||Array.isArray(rules))throw new Error("Regla de cliente inválida en la copia.");cleanCustomerRules[key]=cleanRuleSet(rules);}}
+ const storedCounter=data.counter===undefined?0:Number(data.counter);
+ if(!Number.isSafeInteger(storedCounter)||storedCounter<0)throw new Error("El contador de pedidos de la copia no es válido.");
+ const cleanCounter=Math.max(storedCounter,...cleanOrders.map(o=>Number(String(o.id).replace(/^PD-/,""))||0));
+ const restoredOrders=cleanOrders.map(o=>{if(!["approved","rejected"].includes(o.status))o.status=derived(o);return o;});
+ const nextState={...state,orders:restoredOrders,catalog:cleanCatalog,rules:cleanRules,customerRules:cleanCustomerRules,activity:cleanActivity,counter:cleanCounter,selected:restoredOrders[0]?.id||null};
  if(!confirm("Esto sustituirá los pedidos, reglas de clientes y el historial guardados en este navegador. Antes se descargará una copia de seguridad de los datos actuales. ¿Continuar?"))return;
  backupData();
- state.orders=cleanOrders;state.catalog=cleanCatalog;state.rules=cleanRuleSet(data.rules||defaultRules);state.customerRules=cleanCustomerRules;state.orders.forEach(o=>{if(!["approved","rejected"].includes(o.status))o.status=derived(o);});state.activity=cleanActivity;state.counter=Math.max(Number(data.counter)||0,...cleanOrders.map(o=>Number(String(o.id).replace("PD-",""))||0));state.selected=state.orders[0]?.id||null;persist();render();notify("Copia restaurada correctamente.");
+ state=nextState;
+ persist();render();notify("Copia restaurada correctamente.");
 }
 
 function initHelpCenter(){
