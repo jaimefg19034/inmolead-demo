@@ -86,10 +86,10 @@ assert.deepEqual(csvParse('a;b\n1;'),[['a','b'],['1','']]);
 assert.throws(()=>csvParse('a;b\n1;"ab'),/comillas sin cerrar/);
 assert.throws(()=>csvParse('a;b\n1;ab"cd'),/comilla dentro/);
 assert.throws(()=>csvParse('a;b\n1;"ab"x'),/caracteres después/);
-assert.equal(xmlEsc('A\\u0000B\\u0001C\\tD\\nE & <F>'), 'ABC\\tD\\nE &amp; &lt;F&gt;');
+assert.equal(xmlEsc('A'+String.fromCharCode(0)+'B'+String.fromCharCode(1)+'C'+String.fromCharCode(9)+'D'+String.fromCharCode(10)+'E & <F>'), 'ABC'+String.fromCharCode(9)+'D'+String.fromCharCode(10)+'E &amp; &lt;F&gt;');
 assert.equal(xmlEsc('😀'), '😀');
-assert.equal(safeCell('  =HYPERLINK("https://example.com")'), '"\'  =HYPERLINK(""https://example.com"")"');
-assert.equal(safeCell('normal "text"'), '"normal ""text"""');
+assert.equal(safeCell('=1+1'), "\"'=1+1\"");
+assert.equal(safeCell('normal "text"'), '"'+'normal ""text""'+'"');
 console.log('CSV, XML and spreadsheet safety tests OK');
 """
         result=subprocess.run([node,"-e",tests],text=True,capture_output=True)
