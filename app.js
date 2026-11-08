@@ -377,6 +377,7 @@ $("catalog-template").onclick=()=>downloadFile("plantilla-catalogo-pedidoclaro.c
 $("catalog-file").onchange=async e=>{try{await showImportPreview(e.target.files[0],"catalog");}catch(err){notify(err.message||"No se pudo leer el CSV.");e.target.value="";}};
 
 $("import-preview-cancel").onclick=()=>{pendingImport=null;$("import-preview-dialog").close();$("csv-file").value="";$("catalog-file").value="";};
+$("import-preview-errors").onclick=()=>{if(!pendingImport?.audit?.errors?.length)return;downloadImportErrors(pendingImport.kind==="orders"?"pedidoclaro-errores-pedidos.csv":"pedidoclaro-errores-catalogo.csv",pendingImport.headers,pendingImport.audit.errors);notify("Informe de filas rechazadas descargado.");};
 $("import-preview-confirm").onclick=async()=>{
  if(!pendingImport)return;
  const task=pendingImport;pendingImport=null;$("import-preview-dialog").close();
