@@ -755,3 +755,22 @@ body{background:radial-gradient(ellipse at 80% -10%,#eaf0ff 0,transparent 36%),#
  .import-wizard-actions .btn{min-width:0;width:100%;font-size:9px;padding:9px 7px}
  .import-audit-table{min-width:650px}
 }
+
+
+/* v25 · Operations controls, sorting and filtered exports */
+.filters{align-items:center;flex-wrap:wrap;padding:0 14px 14px}
+.filters .field:first-child{flex:1 1 210px;min-width:160px}
+.filters select{flex:0 1 150px;max-width:180px;min-width:120px}
+.panel-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}
+.panel-actions .btn{white-space:nowrap}
+.panel-actions .btn:disabled{opacity:.38;cursor:not-allowed;filter:grayscale(.5)}
+@media(max-width:760px){
+ .panel-actions{width:100%;justify-content:flex-start}
+ .panel-actions .btn{font-size:9px;padding:8px 9px}
+ .filters{gap:7px}
+ .filters .field:first-child{flex:1 1 100%}
+ .filters select{flex:1 1 calc(50% - 4px);max-width:none;min-width:0}
+}
+@media(max-width:420px){
+ .panel-actions .btn{flex:1 1 calc(50% - 6px)}
+}
