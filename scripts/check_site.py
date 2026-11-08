@@ -63,6 +63,8 @@ def main():
     for token in ('data-view="clients"','data-view="analytics"'):
         if token not in source: raise SystemExit("Falta navegación: "+token)
     if "datos ficticios" not in source.lower() or "no contiene ia" not in source.lower(): raise SystemExit("Faltan avisos de demo")
+    for token in ("El cliente supera el máximo de 120 caracteres", "La referencia SKU supera el máximo de 80 caracteres", "El nombre del producto supera el máximo de 160 caracteres", "La unidad supera el máximo de 30 caracteres"):
+        if token not in js: raise SystemExit("Falta validación de longitud en importación: "+token)
     node=shutil.which("node")
     if node:
         for name in ["app.js","sw.js"]:
