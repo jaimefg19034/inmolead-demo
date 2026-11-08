@@ -43,7 +43,7 @@ function renderCatalog(){
 }
 function catalogCsvExport(){
  const rows=[["referencia","producto","unidad","precio_unitario"],...state.catalog.map(p=>[p.sku,p.name,p.unit,p.price.toFixed(2)])];
- downloadFile("pedidoclaro-catalogo.csv","\\ufeff"+rows.map(r=>r.map(safeCell).join(";")).join("\\r\\n"),"text/csv;charset=utf-8");
+ downloadFile("pedidoclaro-catalogo.csv","\ufeff"+rows.map(r=>r.map(safeCell).join(";")).join("\r\n"),"text/csv;charset=utf-8");
  notify("Catálogo exportado: "+state.catalog.length+" productos.");
 }
 async function catalogCsvImport(file){
