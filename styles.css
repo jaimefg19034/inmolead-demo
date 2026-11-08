@@ -893,3 +893,10 @@ body{background:radial-gradient(ellipse at 80% -10%,#eaf0ff 0,transparent 36%),#
  .lines:has(.order-line-row) .qty-input,.lines:has(.order-line-row) .price-input{width:100px}
  .review-progress-copy{font-size:10px}
 }
+
+
+/* v33 · Per-customer validation settings */
+#rules-description{max-width:560px}
+#rules-reset-client[hidden]{display:none}
+.clients-table td:last-child{white-space:nowrap}
+@media(max-width:760px){.clients-table{min-width:760px}}
