@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#07111f"><meta name="description" content="PedidoClaro: bandeja de revisión y preparación de pedidos B2B.">
-<title>PedidoClaro — Operaciones B2B</title><link rel="stylesheet" href="styles.css?v=24"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>PedidoClaro — Operaciones B2B</title><link rel="stylesheet" href="styles.css?v=25"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml">
 </head>
 <body>
 <div class="app">
@@ -23,24 +23,12 @@
  <header class="topbar"><div class="crumb"><span>Operaciones</span><span>/</span><b id="crumb">Bandeja de pedidos</b></div><div class="top-actions"><button class="btn secondary smallbtn install-btn" id="install-app" hidden>＋ Instalar app</button><span class="demo-pill">● DEMO · DATOS FICTICIOS</span></div></header>
  <section class="view active" id="view-orders">
   <div class="pagehead"><div><div class="eyebrow">CENTRO DE OPERACIONES</div><h1>Pedidos recibidos</h1><p>Prepara pedidos, revisa las excepciones y decide qué está listo para aprobar.</p></div><div class="head-actions"><button class="btn secondary smallbtn" id="import-csv">↑ Importar CSV</button><button class="btn secondary smallbtn" id="csv-template">Plantilla</button><button class="btn secondary smallbtn" id="backup-data">↓ Copia JSON</button><button class="btn secondary smallbtn" id="restore-data">↥ Restaurar</button><button class="btn primary" id="new-order">＋ Nuevo pedido</button></div></div>
-  <section class="ops-hero"><div class="ops-hero-copy"><span class="ops-hero-label">PANEL DE CONTROL</span><h2>Todo empieza con un pedido bien preparado.</h2><p>Centraliza la revisión, detecta excepciones y mantén cada operación bajo control.</p><div class="ops-hero-actions"><button class="btn hero-primary" id="hero-import">↑ Importar pedidos</button><span class="ops-hero-note"><i></i> Entorno local de demostración</span></div></div><div class="ops-hero-visual" aria-hidden="true"><div class="hero-orbit orbit-one"></div><div class="hero-orbit orbit-two"></div><div class="hero-glass-card"><span class="hero-card-icon">✓</span><div><b>Revisión inteligente</b><small>Decisiones siempre humanas</small></div><span class="hero-card-check">●</span></div><div class="hero-floating floating-top"><small>ESTADO</small><b>Organizado</b></div><div class="hero-floating floating-bottom"><small>FLUJO</small><b>Recibir → Validar → Exportar</b></div></div></section>
-  <section class="dashboard-visuals" aria-label="Resumen visual de operaciones">
-   <div class="dashboard-section-head"><div><span class="eyebrow">PANEL DE ANALÍTICA</span><h2>Visión general de tu negocio</h2><p>Gráficas y métricas actualizadas con los pedidos guardados en este dispositivo.</p></div><button class="btn secondary smallbtn" data-view="analytics">Ver analítica completa ↗</button></div>
-   <div class="dashboard-chart-grid">
-    <section class="panel dashboard-chart-panel"><div class="panel-head"><div><h2>Estado de los pedidos</h2><p>Volumen y valor por situación</p></div></div><div class="dashboard-chart-content" id="dashboard-status"></div></section>
-    <section class="panel dashboard-chart-panel"><div class="panel-head"><div><h2>Ranking de clientes</h2><p>Los cinco clientes con mayor volumen</p></div></div><div class="dashboard-chart-content" id="dashboard-clients"></div></section>
-   </div>
-  </section>
   <div class="stats">
    <article class="stat"><div class="stat-top"><span>Por revisar</span><span class="stat-icon">◷</span></div><strong id="stat-pending">0</strong><small>Pedidos que requieren atención</small></article>
    <article class="stat"><div class="stat-top"><span>Listos para aprobar</span><span class="stat-icon">✓</span></div><strong id="stat-ready">0</strong><small>Sin incidencias abiertas</small></article>
    <article class="stat"><div class="stat-top"><span>Incidencias abiertas</span><span class="stat-icon">!</span></div><strong id="stat-issues">0</strong><small>Líneas pendientes de validar</small></article>
    <article class="stat"><div class="stat-top"><span>Aprobados</span><span class="stat-icon">↗</span></div><strong id="stat-approved">0</strong><small>Solo dentro de esta demo</small></article>
   </div>
-  <section class="panel review-queue-panel">
-   <div class="panel-head review-queue-head"><div><span class="chart-kicker">PRIORIZACIÓN DE TRABAJO</span><h2>Cola de revisión</h2><p>Excepciones detectadas con el catálogo local y las confirmaciones pendientes.</p></div><div class="review-queue-tools"><span class="review-queue-count" id="review-queue-count">0 líneas · 0 pedidos</span><button class="btn secondary smallbtn" id="open-rules-queue" type="button">⚙ Configurar reglas</button></div></div>
-   <div class="review-queue-list" id="review-queue-list"></div>
-  </section>
   <div class="layout">
    <section class="panel">
     <div class="panel-head"><div><h2>Bandeja de entrada</h2><p>Pedidos de ejemplo recibidos por distintos canales</p></div><div class="panel-actions"><button class="btn secondary smallbtn" id="export-all" title="Exportar todos los pedidos en CSV">↓ CSV</button><button class="btn secondary smallbtn" id="export-all-xlsx" title="Exportar todos los pedidos a Excel">↓ Excel</button><button class="btn secondary smallbtn" id="export-filtered" title="Exportar solo los pedidos visibles en CSV">↓ Filtrados CSV</button><button class="btn secondary smallbtn" id="export-filtered-xlsx" title="Exportar solo los pedidos visibles a Excel">↓ Filtrados Excel</button></div></div>
