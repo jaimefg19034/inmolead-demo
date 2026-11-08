@@ -193,7 +193,7 @@ async function catalogCsvImport(file){
 }
 
 function renderActivity(){$("activity-list").innerHTML=state.activity.length?state.activity.map(a=>'<div class="activity-row"><span class="activity-dot"></span><div><p>'+esc(a.message)+'</p><small>'+esc(a.time)+(a.id?" · "+esc(a.id):"")+'</small></div></div>').join(""):'<div class="empty-state"><div><div class="empty-icon">◷</div><b>Sin actividad todavía</b><p>Las acciones de esta demo aparecerán aquí.</p></div></div>';const exportButton=$("export-activity");if(exportButton)exportButton.disabled=!state.activity.length;}
-function exportActivityCsv(){if(!state.activity.length){notify("No hay actividad que exportar.");return;}const rows=[["fecha","accion","pedido"],...state.activity.map(a=>[a.time,a.message,a.id||""])];downloadFile("pedidoclaro-actividad.csv","\\ufeff"+rows.map(r=>r.map(safeCell).join(";")).join("\\r\\n"),"text/csv;charset=utf-8");notify("Historial exportado: "+state.activity.length+" acciones.");}
+function exportActivityCsv(){if(!state.activity.length){notify("No hay actividad que exportar.");return;}const rows=[["fecha","accion","pedido"],...state.activity.map(a=>[a.time,a.message,a.id||""])];downloadFile("pedidoclaro-actividad.csv","\ufeff"+rows.map(r=>r.map(safeCell).join(";")).join("\r\n"),"text/csv;charset=utf-8");notify("Historial exportado: "+state.activity.length+" acciones.");}
 
 function clientSummary(){
  const map=new Map();
