@@ -49,7 +49,7 @@ async function importCsvFile(file){
  if(missing.length)throw new Error("Faltan columnas obligatorias: "+missing.join(", ")+". Descarga la plantilla para ver el formato.");
  const groups=new Map();let invalid=0;
  rows.forEach((r,i)=>{const get=k=>cols[k]<0?"":String(r[cols[k]]??"").trim(),client=get("client"),sku=get("sku"),name=get("name"),qty=parseNumber(get("qty")),price=parseNumber(get("price")),unit=get("unit")||"ud.",source=get("order")||("Fila "+(i+2));
- if(!client||!sku||!name||!Number.isInteger(qty)||qty<1||qty>999999||!Number.isFinite(price)||price<0||price>999999){invalid++;return;}
+ if(!client||!sku||!name||!get("qty")||!get("price")||!Number.isInteger(qty)||qty<1||qty>999999||!Number.isFinite(price)||price<0||price>999999){invalid++;return;}
  const key=source+"|"+client;if(!groups.has(key))groups.set(key,{sourceId:key,sourceRef:source,client,lines:[]});
  groups.get(key).lines.push({name:name.slice(0,160),sku:sku.slice(0,80),qty,unit:unit.slice(0,30),price:Math.round(price*100)/100,issue:"Importada desde CSV: confirma referencia, cantidad y precio",checked:false});
  });
@@ -82,7 +82,7 @@ async function restoreData(file){
  });
  const cleanActivity=data.activity.map(a=>({message:String(a?.message||"Actividad").slice(0,240),id:String(a?.id||"").slice(0,40),time:String(a?.time||"").slice(0,80)}));
  if(!confirm("Esto sustituirá los pedidos y el historial guardados en este navegador. ¿Continuar?"))return;
- state.orders=cleanOrders;state.activity=cleanActivity;state.counter=Math.max(Number(data.counter)||0,...cleanOrders.map(o=>Number(String(o.id).replace("PD-",""))||0));state.selected=state.orders[0]?.id||null;persist();render();notify("Copia restaurada correctamente.");
+ state.orders=cleanOrders;state.orders.forEach(o=>{if(!["approved","rejected"].includes(o.status))o.status=derived(o);});state.activity=cleanActivity;state.counter=Math.max(Number(data.counter)||0,...cleanOrders.map(o=>Number(String(o.id).replace("PD-",""))||0));state.selected=state.orders[0]?.id||null;persist();render();notify("Copia restaurada correctamente.");
 }
 
 function render(){renderList();renderActivity();}
