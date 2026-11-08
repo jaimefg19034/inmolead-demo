@@ -14,11 +14,16 @@ PedidoClaro explora cómo preparar, revisar y exportar pedidos antes de introduc
 - Exportación CSV de un pedido o de toda la bandeja.
 - **Importación CSV** con validación básica, agrupación por pedido y detección de importaciones duplicadas.
 - Plantilla CSV descargable.
+- **Catálogo local de productos**: alta y eliminación manual, búsqueda, importación CSV y exportación CSV.
+- El catálogo se incluye en las copias JSON y se restaura junto con los pedidos.
 - **Copia de seguridad y restauración JSON** de pedidos e historial.
 - Parser de texto local muy limitado para algunos ejemplos.
 - Historial de acciones y guardado local.
 - **PWA / modo sin conexión**: el navegador guarda los archivos de la aplicación tras la primera visita.
 - Diseño responsive y controles automáticos en GitHub Actions.
+
+## Catálogo de productos
+El catálogo admite columnas `referencia`, `producto` y `precio_unitario` (obligatorias), con `unidad` opcional. Al importar, las referencias existentes se actualizan y las nuevas se añaden. Esta función no sincroniza precios con pedidos ni con un ERP.
 
 ## Formato CSV
 Columnas obligatorias: `cliente`, `referencia`, `producto`, `cantidad`, `precio_unitario`. Opcionales: `pedido`, `unidad`. Se admiten separadores punto y coma, coma o tabulador. Cada línea importada queda pendiente de revisión humana. La plantilla dentro de la aplicación muestra un ejemplo.
