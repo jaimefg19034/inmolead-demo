@@ -861,3 +861,35 @@ body{background:radial-gradient(ellipse at 80% -10%,#eaf0ff 0,transparent 36%),#
 /* v31 · Clear review confirmation status */
 .line-reviewed-at{display:block;flex-basis:100%;font-size:9px;color:#688579;padding-left:2px}
 .line-actions .resolve{font-weight:800;padding:7px 10px;border:1px solid #c8e6d4;background:#f0faf4;color:#226c47}
+
+
+/* v32 · Mobile-first line review: every field and confirmation stays visible */
+.review-progress{margin:0 0 14px;padding:11px 12px;border:1px solid var(--line);border-radius:9px;background:#fbfcfe}
+.review-progress-copy{display:flex;justify-content:space-between;gap:10px;font-size:10px;color:var(--ink)}
+.review-progress-copy span{color:var(--muted);font-variant-numeric:tabular-nums}
+.review-progress-track{height:6px;margin-top:9px;border-radius:99px;background:#e9edf3;overflow:hidden}
+.review-progress-track i{display:block;height:100%;border-radius:99px;background:#398b68;transition:width .2s ease}
+.line-sku{font-size:10px;overflow-wrap:anywhere}
+.line-actions{align-items:center}
+.line-actions .resolve{white-space:nowrap}
+.order-line-row.review-focus{outline:2px solid #79a9e2;outline-offset:-2px;background:#f3f8ff;animation:reviewPulse 1.2s ease-out}
+@keyframes reviewPulse{0%{background:#e4f0ff}100%{background:transparent}}
+@media(max-width:760px){
+ .table-wrap:has(.order-line-row){overflow:visible}
+ .lines:has(.order-line-row){min-width:0;width:100%;display:block}
+ .lines:has(.order-line-row) thead{display:none}
+ .lines:has(.order-line-row) tbody{display:grid;gap:10px}
+ .lines:has(.order-line-row) .order-line-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 12px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:#fff;box-shadow:0 2px 8px rgba(20,35,60,.035)}
+ .lines:has(.order-line-row) .order-line-row td{display:flex;min-width:0;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #f0f2f5;text-align:left!important}
+ .lines:has(.order-line-row) .order-line-row td:before{content:attr(data-label);font-size:9px;font-weight:700;color:#8793a4;flex:0 0 auto}
+ .lines:has(.order-line-row) .order-line-row td:first-child{grid-column:1/-1;display:block;padding-top:3px}
+ .lines:has(.order-line-row) .order-line-row td:first-child:before{display:block;margin-bottom:6px}
+ .lines:has(.order-line-row) .order-line-row td:last-child{grid-column:1/-1;display:block;border:0;padding-bottom:3px}
+ .lines:has(.order-line-row) .order-line-row td:last-child:before{display:block;margin-bottom:8px}
+ .lines:has(.order-line-row) .line-actions{justify-content:flex-start;gap:7px}
+ .lines:has(.order-line-row) .line-actions .resolve{padding:9px 12px;font-size:11px}
+ .lines:has(.order-line-row) .line-actions .iconbtn{padding:8px 10px;font-size:10px}
+ .lines:has(.order-line-row) .line-reviewed-at{flex-basis:100%}
+ .lines:has(.order-line-row) .qty-input,.lines:has(.order-line-row) .price-input{width:100px}
+ .review-progress-copy{font-size:10px}
+}
