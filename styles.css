@@ -1914,3 +1914,9 @@ body,.app{background:#f3f5f8!important;color:#26364a!important}
  #view-orders .detail-actions>div .btn{min-width:0}
  #view-orders #duplicate-order{grid-column:1/-1}
 }
+
+/* v48 · Historial exportable */
+#view-activity .head-actions{justify-content:flex-end}
+#view-activity #export-activity{background:#fff;color:#31577d;border:1px solid #cbd7e4}
+#view-activity #export-activity:disabled{background:#edf1f5;color:#748397;border-color:#d8e0e8;opacity:1}
+@media(max-width:760px){#view-activity .head-actions{width:100%;display:grid;grid-template-columns:1fr 1fr}#view-activity .head-actions .btn{width:100%}}
