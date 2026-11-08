@@ -1799,3 +1799,26 @@ body,.app{background:#f3f5f8!important;color:#26364a!important}
  #view-clients .table-wrap{overflow-x:auto!important}
  #view-clients .clients-table{min-width:760px!important}
 }
+
+
+/* v43 · Analítica: etiquetas oscuras y gráfico legible */
+#view-analytics .analytics-svg-wrap{
+ background:#fff!important;
+ border:1px solid #dfe6ee!important;
+ box-shadow:0 3px 12px rgba(30,55,80,.045)!important;
+}
+#view-analytics .analytics-svg-head b{color:#263b53!important}
+#view-analytics .analytics-svg-head span{color:#536980!important}
+#view-analytics .analytics-status-svg text{
+ fill:#34495f!important;
+ font-weight:700!important;
+}
+#view-analytics .analytics-status-svg line{
+ stroke:#d8e1eb!important;
+}
+#view-analytics .analytics-svg-wrap,
+#view-analytics .analytics-chart-body,
+#view-analytics .analytics-chart-body span,
+#view-analytics .analytics-chart-body small{
+ text-shadow:none!important;
+}
