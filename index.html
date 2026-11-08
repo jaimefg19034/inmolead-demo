@@ -10,10 +10,10 @@
 <aside class="sidebar">
  <div class="brand">pedido<span>claro</span><small>OPERACIONES B2B</small></div>
  <div class="navlabel">ESPACIO DE TRABAJO</div>
- <button class="navbtn active" data-view="orders"><span class="navicon">▤</span><span class="navtext">Bandeja de pedidos</span></button>
- <button class="navbtn" data-view="activity"><span class="navicon">◷</span><span class="navtext">Actividad reciente</span></button>
+ <button class="navbtn active" data-view="orders" aria-label="Bandeja de pedidos"><span class="navicon">▤</span><span class="navtext">Bandeja de pedidos</span></button>
+ <button class="navbtn" data-view="activity" aria-label="Actividad reciente"><span class="navicon">◷</span><span class="navtext">Actividad reciente</span></button>
  <div class="navlabel">AYUDA</div>
- <button class="navbtn" data-view="guide"><span class="navicon">ⓘ</span><span class="navtext">Cómo funciona</span></button>
+ <button class="navbtn" data-view="guide" aria-label="Cómo funciona"><span class="navicon">ⓘ</span><span class="navtext">Cómo funciona</span></button>
  <div class="side-bottom">DN &nbsp; Distribuciones Norte<small>Entorno de demostración · Datos ficticios</small></div>
 </aside>
 <main class="main">
@@ -41,6 +41,7 @@
  </section>
  <section class="view" id="view-activity"><div class="pagehead"><div><div class="eyebrow">REGISTRO LOCAL</div><h1>Actividad reciente</h1><p>Acciones realizadas en esta demostración en este navegador.</p></div><button class="btn secondary" id="clear-activity">Limpiar registro</button></div><section class="panel"><div class="panel-head"><div><h2>Historial de acciones</h2><p>No es un registro de auditoría empresarial.</p></div></div><div class="activity-list" id="activity-list"></div></section></section>
  <section class="view" id="view-guide"><div class="pagehead"><div><div class="eyebrow">INFORMACIÓN DEL PROTOTIPO</div><h1>Cómo funciona</h1><p>Qué puedes probar y qué todavía no hace PedidoClaro.</p></div></div><section class="panel"><div class="guide"><div class="guide-item"><b>1. Selecciona un pedido</b><p>La bandeja muestra registros ficticios. Puedes buscar por cliente, número o referencia y filtrar por estado.</p></div><div class="guide-item"><b>2. Revisa las líneas</b><p>Modifica cantidades y precios, confirma las incidencias o marca una línea como revisada. Los totales se recalculan.</p></div><div class="guide-item"><b>3. Aprueba solo cuando esté listo</b><p>La demo bloquea la aprobación si quedan incidencias. Aprobar solo cambia el estado local; no envía nada a un ERP.</p></div><div class="guide-item"><b>4. Exporta los datos</b><p>Descarga CSV de un pedido o de toda la bandeja para probar el formato de salida.</p></div><div class="guide-item"><b>Privacidad y límites</b><p>Los datos de muestra y tus cambios se guardan en el almacenamiento local del navegador. No pegues datos reales de clientes ni información comercial confidencial. No existe servidor, cuenta, IA, OCR, email, WhatsApp ni integración ERP.</p></div></div></section></section>
+ <noscript><div class="banner">Activa JavaScript para utilizar la demostración. No se envían ni procesan pedidos reales.</div></noscript>
  <div class="banner"><b>Importante:</b> PedidoClaro es una demo de producto, no un sistema operativo real. No contiene IA, OCR ni integraciones. Los pedidos y métricas son ficticios; no introduzcas información real ni uses la demo para gestionar pedidos de clientes.</div>
  <footer>PedidoClaro · Prototipo de validación · Sin conexiones externas · Los cambios se guardan solo en este navegador.</footer>
 </main>
