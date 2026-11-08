@@ -27,9 +27,10 @@ function notify(s){const e=$("toast");e.textContent=s;e.classList.add("show");cl
 function log(message,id=""){state.activity.unshift({message,id,time:new Date().toLocaleString("es-ES",{dateStyle:"short",timeStyle:"short"})});state.activity=state.activity.slice(0,100);persist();}
 function derived(o){if(final(o))return o.status;return issues(o)?"review":"ready";}
 function stats(){$("stat-pending").textContent=state.orders.filter(o=>["review","ready"].includes(o.status)).length;$("stat-ready").textContent=state.orders.filter(o=>o.status==="ready").length;$("stat-issues").textContent=state.orders.reduce((n,o)=>n+issues(o),0);$("stat-approved").textContent=state.orders.filter(o=>o.status==="approved").length;}
+function searchKey(value){return String(value??"").toLocaleLowerCase("es").normalize("NFD").replace(/[\u0300-\u036f]/g,"");}
 function getVisibleOrders(){
- const q=$("search").value.trim().toLocaleLowerCase("es"),f=$("filter").value,sort=$("sort-orders")?.value||"recent";
- const rows=state.orders.filter(o=>(f==="all"||o.status===f)&&[o.id,o.client,o.channel,...o.lines.map(l=>l.sku+" "+l.name)].join(" ").toLocaleLowerCase("es").includes(q));
+ const q=searchKey($("search").value.trim()),f=$("filter").value,sort=$("sort-orders")?.value||"recent";
+ const rows=state.orders.filter(o=>(f==="all"||o.status===f)&&searchKey([o.id,o.client,o.channel,o.date,labels[o.status]||o.status,o.notes,...o.lines.flatMap(l=>[l.sku,l.name,l.unit,l.issue])].join(" ")).includes(q));
  const statusRank={review:0,ready:1,approved:2,rejected:3};
  if(sort==="priority")rows.sort((a,b)=>issues(b)-issues(a)||statusRank[a.status]-statusRank[b.status]);
  else if(sort==="value-desc")rows.sort((a,b)=>sum(b)-sum(a));
