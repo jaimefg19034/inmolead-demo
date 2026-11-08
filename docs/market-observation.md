@@ -1,35 +1,26 @@
-# Observaciones iniciales de mercado
+# Investigación inicial de mercado — InmoLead
 
-Fecha de elaboración: 8 de noviembre de 2026.
+**Consultada:** 8 de noviembre de 2026. Revisión preliminar de páginas públicas, no estudio exhaustivo ni prueba de demanda.
 
-## Hipótesis de posicionamiento
+## Hallazgo principal
+Los CRM inmobiliarios existentes ya ofrecen gestión de contactos, tareas, agenda, campañas y automatizaciones. «Organizar leads» o «hacer seguimiento» no son diferenciadores suficientes por sí solos.
 
-No competir como "otro chatbot inmobiliario". Propuesta inicial más estrecha:
+## Referencias
+| Proveedor | Información pública consultada | Implicación |
+|---|---|---|
+| [Inmovilla](https://www.inmovilla.com/) | CRM con contactos, demandas, propiedades, agenda, seguimiento y comunicaciones. La página de precios mostraba Full Edition a 79 €/mes, hasta 7 usuarios incluidos, sin IVA. | No competir como CRM completo. |
+| [Witei](https://get.witei.com/es/crm-inmobiliario/) | Describe captación de contactos desde portales, respuestas automáticas, agenda de visitas, seguimiento y campañas. | La categoría ya cubre funciones genéricas de seguimiento. |
+| [Inmobalia](https://www.inmobalia.com/es/precios/) | La página mostraba Starter desde 135 €/mes para 2 usuarios, más cuota de alta de 450 € en modalidad mensual, sin IVA. | Existe oferta vertical amplia; validar si una capa ligera aporta valor real. |
 
-**Seguimiento de leads y recuperación de consultas sin respuesta**, con borradores revisables y agenda de visitas.
+Los precios pueden cambiar y deben verificarse antes de utilizarlos comercialmente.
 
-## Competidores y referencias por investigar
-
-- Soluciones de CRM inmobiliario con automatización y seguimiento.
-- Agentes conversacionales para inmobiliarias.
-- Herramientas generalistas de WhatsApp Business y automatización.
-
-Los precios publicados por competidores no demuestran demanda ni rentabilidad. Verificar precios, funcionalidades, integraciones y condiciones antes de utilizarlos en comparativas comerciales.
-
-## Diferenciación a validar
-
-1. Instalación sencilla para agencias pequeñas.
-2. Funciona con su proceso actual, no exige sustituir el CRM.
-3. Prioriza leads que necesitan seguimiento.
-4. Borradores revisables por el agente; no envíos automáticos por defecto.
-5. Métricas simples: tiempo de respuesta y visitas concertadas.
+## Posicionamiento a probar
+No sustituir el CRM. Investigar si existe una carencia concreta en detectar oportunidades sin próxima acción, explicar por qué aparecen pendientes y recomendar una tarea clara revisable por el agente. La integración con el CRM sería necesaria si la hipótesis se confirma, pero no está implementada.
 
 ## Riesgos
+- WhatsApp Business Platform tiene reglas de plantillas y ventanas de atención. Consultar la [política oficial](https://whatsappbusiness.com/policy/) antes de diseñar envíos.
+- Datos personales: aplicar minimización, finalidad, base jurídica, transparencia, acceso restringido, conservación y borrado. Referencias: [AEPD consentimiento](https://www.aepd.es/preguntas-frecuentes/2-tus-obligaciones-como-responsable-del-tratamiento/5-bases-legitimadoras-del-tratamiento/FAQ-0211-segun-el-rgpd-como-debe-solicitarse-el-consentimiento-de-los-interesados-para-tratar-sus-datos-personales) y [principios AEPD](https://www.aepd.es/derechos-y-deberes/cumple-tus-deberes/principios).
+- AI Act: revisar obligaciones aplicables según el uso concreto. [Comisión Europea — transparencia](https://digital-strategy.ec.europa.eu/en/faqs/transparency-obligations-under-article-50-ai-act).
 
-- Dependencia de permisos, plantillas y políticas de WhatsApp Business.
-- Datos personales y obligaciones RGPD.
-- Integraciones con CRMs heterogéneos.
-- Competidores consolidados.
-- Disposición a pagar aún no demostrada.
-
-La siguiente acción es entrevistar a 10 agencias antes de construir integraciones costosas.
+## Próxima acción
+Entrevistar a 10 agencias, entender CRM, canales, flujo, casos recientes y disposición a probar. No utilizar promesas de aumento de ventas ni métricas genéricas sin evidencia.
