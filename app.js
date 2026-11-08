@@ -293,7 +293,7 @@ $("new-order").onclick=()=>{$("order-dialog").showModal();$("client-name").focus
 $("order-form").addEventListener("submit",e=>{if(e.submitter?.id!=="create-order")return;e.preventDefault();const client=$("client-name").value.trim();if(!client){notify("Introduce un cliente ficticio.");return;}$("order-dialog").close();addOrder(client,$("channel").value,[{name:"Material eléctrico surtido",sku:"MAT-SURT-01",qty:5,unit:"caja",price:22.5,issue:"Confirma la composición del surtido",checked:false},{name:"Accesorios de instalación",sku:"ACC-INST-02",qty:3,unit:"lote",price:14,issue:"Confirma el contenido del lote",checked:false}]);});
 $("parse-order").onclick=parseText;
 $("hero-import")?.addEventListener("click",()=>$("csv-file").click());$("export-all").onclick=()=>state.orders.length?exportCsv(state.orders):notify("No hay pedidos que exportar.");$("export-all-xlsx").onclick=()=>state.orders.length?exportOrdersXlsx(state.orders):notify("No hay pedidos que exportar.");$("clear-activity").onclick=()=>{if(!confirm("¿Limpiar el historial local?"))return;state.activity=[];persist();renderActivity();};
-document.querySelectorAll(".navbtn").forEach(b=>b.onclick=()=>view(b.dataset.view));
+document.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>view(b.dataset.view));
 
 $("import-csv").onclick=()=>$("csv-file").click();
 $("csv-file").onchange=async e=>{try{await showImportPreview(e.target.files[0],"orders");}catch(err){notify(err.message||"No se pudo leer el CSV.");e.target.value="";}};
