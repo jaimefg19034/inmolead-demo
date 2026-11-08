@@ -257,7 +257,7 @@ function auditImportRows(rows,kind){
     if(!client)item.reason="Falta el cliente";else if(!sku)item.reason="Falta la referencia SKU";else if(!name)item.reason="Falta el nombre del producto";else if(!get("qty")||!Number.isFinite(qty))item.reason="Cantidad vacía o no numérica";else if(!Number.isInteger(qty)||qty<1||qty>state.rules.maxQuantity)item.reason="Cantidad fuera del límite configurado (1–"+state.rules.maxQuantity.toLocaleString("es-ES")+")";else if(!get("price")||!Number.isFinite(price))item.reason="Precio vacío o no numérico";else if(price<0||price>999999)item.reason="Precio fuera del límite (0–999.999)";
     if(!item.reason){
      const source=get("order")||"__LOTE_PREVIEW__",key=source+"|"+client,sk=sku.toLocaleLowerCase("es");
-     if(!groupMap.has(key))groupMap.set(key,{sourceId:key,client,order:get("order"),lines:0,existing:false});
+     if(!groupMap.has(key))groupMap.set(key,{sourceId:key,client,order:get("order"),lines:0,importableLines:0,existing:false});
      const group=groupMap.get(key);group.lines++;
      if(!skuSets.has(key))skuSets.set(key,new Set());
      if(skuSets.get(key).has(sk)){item.status=state.rules.duplicateSku==="block"?"rejected":"warning";item.reason="Referencia repetida dentro del mismo pedido"+(state.rules.duplicateSku==="block"?" · bloqueada por regla":"");}else skuSets.get(key).add(sk);
@@ -265,6 +265,7 @@ function auditImportRows(rows,kind){
      if(!product){if(state.rules.unknownSku==="block")item.status="rejected";else if(item.status==="ok")item.status="warning";item.reason+=(item.reason?"; ":"")+"SKU no encontrado en catálogo"+(state.rules.unknownSku==="block"?" · bloqueado por regla":"");}
      else if(priceDiffers(product.price,Math.round(price*100)/100)){if(item.status==="ok")item.status="warning";item.reason+=(item.reason?"; ":"")+"Precio distinto al catálogo (tolerancia "+state.rules.priceTolerancePct+"%)";}
      if(get("order")&&state.orders.some(o=>o.sourceId===key)){item.status="duplicate";item.reason="Este pedido y cliente ya se importaron anteriormente";group.existing=true;}
+     if(item.status!=="rejected"&&item.status!=="duplicate")group.importableLines++;
     }
    }
    if(item.status==="rejected"||(item.reason&&item.status==="ok")){item.status="rejected";audit.rejected++;audit.errors.push({row:item.row,reason:item.reason,values:r});}
@@ -274,7 +275,7 @@ function auditImportRows(rows,kind){
    audit.rows.push(item);
   }
   audit.groups=groupMap.size;
-  audit.importable=[...groupMap.values()].filter(g=>!g.existing).length;
+  audit.importable=[...groupMap.values()].filter(g=>!g.existing&&g.importableLines>0).length;
  }else{
   const cols={sku:idx("referencia","sku","codigo","codigo_producto"),name:idx("producto","product","descripcion","nombre"),unit:idx("unidad","unit","ud"),price:idx("precio_unitario","precio","price","unit_price")};
   const missing=["sku","name","price"].filter(k=>cols[k]<0);
@@ -356,9 +357,10 @@ async function importCsvFile(file){
  const catalogProduct=state.catalog.find(p=>p.sku.toLocaleLowerCase("es")===sku.toLocaleLowerCase("es"));const roundedPrice=Math.round(price*100)/100;const duplicateSku=groups.get(key).lines.some(line=>line.sku.toLocaleLowerCase("es")===sku.toLocaleLowerCase("es"));if(duplicateSku&&state.rules.duplicateSku==="block"){errors.push({row:i+2,reason:"Referencia repetida en el pedido · bloqueada por regla",values:r});return;}if(!catalogProduct&&state.rules.unknownSku==="block"){errors.push({row:i+2,reason:"SKU no encontrado en catálogo · bloqueado por regla",values:r});return;}const issue=duplicateSku?"Referencia repetida en el pedido: confirma si son líneas distintas":!catalogProduct?"Referencia no encontrada en el catálogo: valida el SKU":priceDiffers(catalogProduct.price,roundedPrice)?"Precio distinto al catálogo (referencia: "+money(catalogProduct.price)+")":"Importada: confirma cantidad y producto";groups.get(key).lines.push({name:name.slice(0,160),sku:sku.slice(0,80),qty,unit:unit.slice(0,30),price:roundedPrice,issue,checked:false});
  });
  if(errors.length)downloadImportErrors("pedidoclaro-errores-pedidos.csv",originalHeaders,errors);
- if(!groups.size)throw new Error("No se ha encontrado ninguna línea válida. Se ha descargado un CSV con las filas rechazadas.");
+ const importableGroups=[...groups.values()].filter(g=>g.lines.length);
+ if(!importableGroups.length)throw new Error("No se ha encontrado ninguna línea válida según las reglas configuradas. Se ha descargado un CSV con las filas rechazadas.");
  let added=0,skipped=0;
- for(const g of groups.values()){
+ for(const g of importableGroups){
   if(state.orders.some(o=>o.sourceId===g.sourceId)){skipped++;continue;}
   state.counter=Math.max(state.counter,...state.orders.map(o=>Number(o.id.slice(3))||0))+1;
   state.orders.unshift({id:"PD-"+state.counter,sourceId:g.sourceId,sourceRef:g.sourceRef,client:g.client.slice(0,120),date:"Importado ahora",channel:"CSV importado",status:"review",lines:g.lines});
