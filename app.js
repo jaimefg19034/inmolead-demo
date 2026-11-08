@@ -391,7 +391,27 @@ async function restoreData(file){
  state.orders=cleanOrders;state.catalog=cleanCatalog;state.orders.forEach(o=>{if(!["approved","rejected"].includes(o.status))o.status=derived(o);});state.activity=cleanActivity;state.counter=Math.max(Number(data.counter)||0,...cleanOrders.map(o=>Number(String(o.id).replace("PD-",""))||0));state.selected=state.orders[0]?.id||null;persist();render();notify("Copia restaurada correctamente.");
 }
 
-function render(){renderList();renderCatalog();renderActivity();renderClients();renderAnalytics();renderDashboardCharts();}
+function renderReviewQueue(){
+ const findings=[];
+ for(const o of state.orders){
+  if(final(o))continue;
+  for(const line of o.lines){
+   const product=state.catalog.find(p=>String(p.sku).toLocaleLowerCase("es")===String(line.sku).toLocaleLowerCase("es"));
+   const reasons=[];
+   if(line.issue)reasons.push(line.issue);
+   else if(!line.checked)reasons.push("Línea pendiente de confirmar");
+   if(!product)reasons.push("SKU no existe en el catálogo");
+   else if(Math.abs(Number(product.price)-Number(line.price))>0.01)reasons.push("Precio distinto al de referencia");
+   if(reasons.length)findings.push({order:o,line,reasons});
+  }
+ }
+ findings.sort((a,b)=>(b.reasons.length-a.reasons.length)||sum(b.order)-sum(a.order));
+ const unique=new Set(findings.map(x=>x.order.id));
+ $("review-queue-count").textContent=findings.length+" líneas · "+unique.size+" pedidos";
+ $("review-queue-list").innerHTML=findings.length?findings.slice(0,6).map(x=>'<article class="review-queue-row"><span class="review-queue-mark">!</span><div class="review-queue-main"><div><b>'+esc(x.line.name||x.line.sku)+'</b><small>'+esc(x.order.id)+' · '+esc(x.order.client)+'</small></div><p>'+x.reasons.map(esc).join(" · ")+'</p></div><strong class="review-queue-value">'+money(x.line.qty*x.line.price)+'</strong><button class="btn secondary smallbtn" data-review-order="'+esc(x.order.id)+'">Revisar ↗</button></article>').join(""):'<div class="review-queue-empty"><span>✓</span><div><b>Todo al día</b><p>No hay líneas pendientes ni diferencias detectadas frente al catálogo local.</p></div></div>';
+ $("review-queue-list").querySelectorAll("[data-review-order]").forEach(b=>b.onclick=()=>{state.selected=b.dataset.reviewOrder;view("orders");render();});
+}
+function render(){renderList();renderCatalog();renderActivity();renderClients();renderAnalytics();renderDashboardCharts();renderReviewQueue();}
 function addOrder(client,channel,lines){state.counter=Math.max(state.counter,...state.orders.map(o=>Number(o.id.slice(3))||0))+1;const o={id:"PD-"+state.counter,client,date:"Ahora",channel,status:"review",lines};o.status=derived(o);state.orders.unshift(o);state.selected=o.id;log("Creó el pedido ficticio "+o.id,o.id);render();notify("Pedido ficticio añadido.");}
 function parseText(){const raw=$("raw-order").value.trim();if(!raw){notify("Pega un pedido de ejemplo primero.");return;}const client=(raw.match(/cliente\s*:\s*([^\n;]+)/i)||[])[1]?.trim()||"Cliente de texto",rules=[{re:/(\d+)\s*(?:cajas?\s+de\s+)?tornillos?/i,name:"Tornillo inox A2 5×50",sku:"TOR-INOX-550",unit:"caja",price:18.5},{re:/(\d+)\s*(?:unidades?|uds?\.?|ud\.?)\s+de\s+silicona/i,name:"Silicona neutra blanca 300 ml",sku:"SIL-NEU-BLA",unit:"ud.",price:4.1},{re:/(\d+)\s*(?:cajas?\s+de\s+)?tacos?/i,name:"Taco nylon universal 8 mm",sku:"TACO-UNIV-08",unit:"caja",price:7.2},{re:/(\d+)\s*(?:unidades?|uds?\.?|ud\.?)\s+de\s+discos?\s+de\s+corte/i,name:"Disco corte inox 115 mm",sku:"DIS-INOX-115",unit:"ud.",price:2.8}],lines=rules.flatMap(r=>{const m=raw.match(r.re);if(!m)return[];const product=state.catalog.find(p=>p.sku.toLocaleLowerCase("es")===r.sku.toLocaleLowerCase("es"));return [{name:product?.name||r.name,sku:r.sku,qty:+m[1],unit:product?.unit||r.unit,price:product?.price??r.price,issue:product?"Confirma la referencia y cantidad extraída":"Referencia no encontrada en el catálogo",checked:false}];});if(!lines.length){notify("No reconozco artículos. Prueba con tornillos, tacos o silicona.");return;}addOrder(client,"Texto pegado (parser local)",lines);$("raw-order").value="";}
 function view(name){document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id==="view-"+name));document.querySelectorAll(".navbtn").forEach(b=>b.classList.toggle("active",b.dataset.view===name));$("crumb").textContent={orders:"Bandeja de pedidos",catalog:"Catálogo de productos",clients:"Clientes",analytics:"Analítica",activity:"Actividad reciente",guide:"Cómo funciona"}[name];if(name==="catalog")renderCatalog();if(name==="clients")renderClients();if(name==="analytics")renderAnalytics();}
