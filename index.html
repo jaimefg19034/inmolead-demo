@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="InmoLead ayuda a inmobiliarias a organizar oportunidades, responder antes y convertir consultas en visitas.">
+<title>InmoLead — Convierte consultas en visitas</title>
+<style>
+:root{--bg:#f4f6fa;--panel:#fff;--ink:#172033;--muted:#758096;--line:#e7eaf0;--blue:#315efb;--blue2:#edf1ff;--green:#13845b;--amber:#a96b12;--red:#bf4b4b;--shadow:0 8px 28px #19284a0b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif}button,input,select{font:inherit}button{cursor:pointer}.app{display:grid;grid-template-columns:245px 1fr;min-height:100vh}.side{background:#111a2d;color:#dce4f5;padding:24px 16px;display:flex;flex-direction:column;gap:26px}.brand{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:800;letter-spacing:-.6px;padding:0 9px}.logo{width:34px;height:34px;border-radius:11px;background:linear-gradient(135deg,#6d8aff,#315efb);display:grid;place-items:center;color:#fff;font-weight:900}.nav{display:grid;gap:6px}.nav button{border:0;background:transparent;color:#aebbd2;text-align:left;padding:11px 12px;border-radius:9px;display:flex;gap:11px;align-items:center}.nav button.active,.nav button:hover{background:#263451;color:white}.nav .ico{width:19px;text-align:center}.side-note{margin-top:auto;background:#1b2942;padding:14px;border-radius:12px;color:#aebbd2;font-size:12px}.side-note strong{display:block;color:#fff;margin-bottom:5px}.main{min-width:0;padding:30px clamp(18px,3vw,42px)}.top{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:28px}.eyebrow{font-size:11px;font-weight:800;letter-spacing:1.2px;color:var(--blue);text-transform:uppercase}.h1{font-size:27px;letter-spacing:-.8px;margin:3px 0 4px}.sub{color:var(--muted)}.avatar{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#dfe6ff;color:#315efb;font-weight:800}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:22px}.card,.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}.stat{padding:17px}.stat-label{color:var(--muted);font-size:12px}.stat-num{font-size:27px;font-weight:750;letter-spacing:-1px;margin:6px 0}.stat-foot{font-size:11px;color:var(--green)}.layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(270px,.85fr);gap:16px}.panel{padding:18px;min-width:0}.panel-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:15px}.panel h2{font-size:15px;margin:0}.muted{color:var(--muted)}.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:13px}.filters input,.filters select{border:1px solid var(--line);border-radius:8px;padding:9px 10px;background:#fff;color:var(--ink);min-width:0}.filters input{flex:1;min-width:150px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;white-space:nowrap}th{text-align:left;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.8px;font-weight:700;padding:10px 8px;border-bottom:1px solid var(--line)}td{padding:13px 8px;border-bottom:1px solid #f0f2f6;font-size:12px}tbody tr{cursor:pointer}tbody tr:hover{background:#f8f9ff}.person{font-weight:700;font-size:12px}.small{font-size:11px;color:var(--muted)}.pill{display:inline-flex;align-items:center;padding:4px 8px;border-radius:30px;font-size:10px;font-weight:700;background:#f0f2f6;color:#667085}.pill.new{background:#edf1ff;color:#315efb}.pill.hot{background:#fff2df;color:#a96b12}.pill.visit{background:#e7f7ef;color:#13845b}.btn{border:0;background:var(--blue);color:#fff;padding:9px 13px;border-radius:8px;font-weight:700;font-size:12px}.btn.secondary{background:#eef1f7;color:#34405a}.btn.ghost{background:transparent;color:var(--blue);padding:6px}.feed{display:grid;gap:0}.item{display:flex;gap:11px;padding:12px 0;border-bottom:1px solid var(--line)}.dot{width:8px;height:8px;background:#315efb;border-radius:50%;margin-top:6px;flex:none}.item strong{font-size:12px}.item p{margin:3px 0;color:var(--muted);font-size:11px}.item time{font-size:10px;color:#9aa3b3}.task{padding:12px;border:1px solid var(--line);border-radius:10px;margin-top:10px}.task-top{display:flex;justify-content:space-between;gap:8px}.task p{font-size:11px;color:var(--muted);margin:5px 0 10px}.task-actions{display:flex;gap:7px}.empty{padding:25px;text-align:center;color:var(--muted)}.notice{margin-top:16px;padding:12px 14px;background:#fff8e9;border:1px solid #f5e5c1;border-radius:10px;color:#795b24;font-size:11px}.toast{position:fixed;bottom:20px;right:20px;background:#172033;color:#fff;padding:12px 16px;border-radius:10px;box-shadow:var(--shadow);opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none}.toast.show{opacity:1;transform:none}.modal-back{position:fixed;inset:0;background:#10182866;display:none;place-items:center;padding:18px}.modal-back.show{display:grid}.modal{background:#fff;border-radius:16px;padding:22px;max-width:440px;width:100%;box-shadow:0 20px 80px #0003}.modal h3{margin:0 0 6px}.modal textarea{width:100%;min-height:110px;border:1px solid var(--line);border-radius:9px;padding:11px;margin:12px 0;font:inherit}.modal-actions{display:flex;justify-content:flex-end;gap:8px}.mobile-menu{display:none}
+@media(max-width:1000px){.stats{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}}@media(max-width:680px){.app{grid-template-columns:1fr}.side{padding:13px 15px;gap:12px}.brand{padding:0}.nav{display:flex;overflow:auto}.nav button{white-space:nowrap;padding:8px 10px}.side-note{display:none}.main{padding:20px 14px}.top{margin-bottom:20px}.h1{font-size:23px}.stats{gap:9px}.stat{padding:13px}.stat-num{font-size:23px}.panel{padding:13px}.hide-mobile{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side">
+  <div class="brand"><div class="logo">i</div> InmoLead</div>
+  <nav class="nav" aria-label="Navegación">
+    <button class="active" data-view="overview"><span class="ico">▦</span> Resumen</button>
+    <button data-view="leads"><span class="ico">◎</span> Oportunidades</button>
+    <button data-view="followups"><span class="ico">↗</span> Seguimientos</button>
+    <button data-view="visits"><span class="ico">▣</span> Visitas</button>
+  </nav>
+  <div class="side-note"><strong>Demo de validación</strong>Los datos son ficticios. Las acciones se guardan solo en este navegador.</div>
+</aside>
+<main class="main">
+  <header class="top">
+    <div><div class="eyebrow">Panel inmobiliario</div><h1 class="h1" id="pageTitle">Buenos días 👋</h1><div class="sub" id="pageSub">Aquí tienes lo que está pasando con tus oportunidades.</div></div>
+    <div class="avatar" title="Cuenta demo">AG</div>
+  </header>
+  <section class="stats" id="stats">
+    <div class="card stat"><div class="stat-label">Oportunidades activas</div><div class="stat-num" id="statActive">24</div><div class="stat-foot">Contactos en seguimiento</div></div>
+    <div class="card stat"><div class="stat-label">Sin responder</div><div class="stat-num" id="statPending">6</div><div class="stat-foot">Requieren atención</div></div>
+    <div class="card stat"><div class="stat-label">Visitas esta semana</div><div class="stat-num" id="statVisits">8</div><div class="stat-foot">Citas registradas</div></div>
+    <div class="card stat"><div class="stat-label">Tiempo medio de respuesta</div><div class="stat-num">18<span style="font-size:14px"> min</span></div><div class="stat-foot">Dato ilustrativo de la demo</div></div>
+  </section>
+  <div class="layout">
+    <section class="panel">
+      <div class="panel-head"><div><h2 id="tableTitle">Oportunidades recientes</h2><div class="small">Selecciona un contacto para preparar el siguiente paso</div></div><button class="btn" id="addLead">+ Añadir lead</button></div>
+      <div class="filters"><input id="search" placeholder="Buscar nombre, inmueble o teléfono…" aria-label="Buscar oportunidades"><select id="statusFilter" aria-label="Filtrar estado"><option value="all">Todos los estados</option><option value="new">Nuevo</option><option value="hot">Interesado</option><option value="visit">Visita agendada</option></select></div>
+      <div class="table-wrap"><table><thead><tr><th>Contacto</th><th>Interés</th><th>Estado</th><th>Último contacto</th></tr></thead><tbody id="leadRows"></tbody></table></div>
+      <div class="empty" id="noResults" hidden>No se han encontrado oportunidades.</div>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><div><h2>Seguimientos sugeridos</h2><div class="small">Prioriza a quién contactar hoy</div></div><span class="pill hot">Prioridad</span></div>
+      <div id="tasks"></div>
+      <div class="notice"><strong>Importante:</strong> InmoLead solo prepara borradores. No envía mensajes ni contacta con personas automáticamente en esta demo.</div>
+    </section>
+  </div>
+  <section class="panel" style="margin-top:16px">
+    <div class="panel-head"><div><h2>Actividad reciente</h2><div class="small">Últimos movimientos del equipo</div></div><span class="pill">Demo</span></div>
+    <div class="feed" id="activity"></div>
+  </section>
+</main>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<div class="modal-back" id="modalBack"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><h3 id="modalTitle">Preparar seguimiento</h3><div class="small" id="modalSub"></div><textarea id="draftText"></textarea><div class="modal-actions"><button class="btn secondary" id="closeModal">Cerrar</button><button class="btn" id="copyDraft">Copiar borrador</button></div></div></div>
+<script>
+const initialLeads=[
+{id:1,name:"Lucía Martín",phone:"+34 611 234 567",property:"Piso · Chamberí",budget:"350.000 €",status:"hot",last:"Hace 12 min",need:"Busca 2 habitaciones y terraza. Puede visitar esta semana.",draft:"Hola, Lucía. Soy Ana, de la inmobiliaria. He visto tu interés en el piso de Chamberí. ¿Te vendría bien organizar una visita esta semana? Puedo proponerte un par de horarios."},
+{id:2,name:"Carlos Ruiz",phone:"+34 622 345 678",property:"Ático · Retiro",budget:"Hasta 500.000 €",status:"new",last:"Hace 35 min",need:"Ha pedido información y todavía no ha recibido respuesta.",draft:"Hola, Carlos. Gracias por tu interés en el ático del Retiro. ¿Sigues buscando una vivienda por esa zona? Si me cuentas un poco qué necesitas, puedo orientarte y resolver tus dudas."},
+{id:3,name:"Marta Sánchez",phone:"+34 633 456 789",property:"Piso · Tetuán",budget:"250.000 €",status:"visit",last:"Ayer",need:"Visita confirmada para el jueves a las 17:30.",draft:"Hola, Marta. Te confirmo nuestra visita al piso de Tetuán el jueves a las 17:30. Si necesitas cambiar la hora, dímelo y buscamos otra opción."},
+{id:4,name:"Pablo Gómez",phone:"+34 644 567 890",property:"Chalet · Pozuelo",budget:"650.000 €",status:"hot",last:"Ayer",need:"Ha preguntado por gastos y disponibilidad.",draft:"Hola, Pablo. Te escribo para saber si has podido revisar la información del chalet de Pozuelo. Puedo aclararte los gastos y comprobar la disponibilidad actual."},
+{id:5,name:"Elena Torres",phone:"+34 655 678 901",property:"Piso · Salamanca",budget:"420.000 €",status:"new",last:"Hace 2 días",need:"Consulta recibida desde el formulario web.",draft:"Hola, Elena. Hemos recibido tu consulta sobre el piso de Salamanca. ¿Qué disponibilidad tienes para que podamos hablar o concertar una visita?"},
+{id:6,name:"Diego López",phone:"+34 666 789 012",property:"Estudio · Argüelles",budget:"190.000 €",status:"hot",last:"Hace 3 días",need:"Ha pedido una segunda visita.",draft:"Hola, Diego. ¿Te gustaría que coordinásemos una segunda visita al estudio de Argüelles? Puedo revisar horarios disponibles contigo."}
+];
+let leads=JSON.parse(localStorage.getItem("inmolead_leads")||"null")||initialLeads;
+let activities=[["Lucía Martín","Ha solicitado información adicional","12 min"],["Marta Sánchez","Visita confirmada · Jueves 17:30","Ayer"],["Pablo Gómez","Ha preguntado por gastos","Ayer"]];
+const labels={new:"Nuevo",hot:"Interesado",visit:"Visita agendada"};
+const $=id=>document.getElementById(id);
+function save(){localStorage.setItem("inmolead_leads",JSON.stringify(leads))}
+function toast(msg){$("toast").textContent=msg;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),2200)}
+function render(){
+ const q=$("search").value.toLowerCase(),f=$("statusFilter").value;
+ const filtered=leads.filter(l=>(f==="all"||l.status===f)&&[l.name,l.property,l.phone].join(" ").toLowerCase().includes(q));
+ $("leadRows").innerHTML=filtered.map(l=>'<tr data-id="'+l.id+'"><td><div class="person">'+esc(l.name)+'</div><div class="small">'+esc(l.phone)+'</div></td><td>'+esc(l.property)+'<div class="small">'+esc(l.budget)+'</div></td><td><span class="pill '+l.status+'">'+labels[l.status]+'</span></td><td class="muted">'+esc(l.last)+'</td></tr>').join("");
+ $("noResults").hidden=filtered.length>0;
+ $("statActive").textContent=leads.length;$("statPending").textContent=leads.filter(l=>l.status!=="visit").length;$("statVisits").textContent=leads.filter(l=>l.status==="visit").length+5;
+ $("tasks").innerHTML=leads.filter(l=>l.status!=="visit").slice(0,3).map(l=>'<div class="task"><div class="task-top"><strong>'+esc(l.name)+'</strong><span class="pill '+l.status+'">'+labels[l.status]+'</span></div><p>'+esc(l.need)+'</p><div class="task-actions"><button class="btn secondary" data-draft="'+l.id+'">Preparar mensaje</button><button class="btn ghost" data-done="'+l.id+'">Marcar hecho</button></div></div>').join("")||'<div class="empty">No hay seguimientos pendientes.</div>';
+ $("activity").innerHTML=activities.map(a=>'<div class="item"><span class="dot"></span><div><strong>'+esc(a[0])+'</strong><p>'+esc(a[1])+'</p><time>'+esc(a[2])+'</time></div></div>').join("");
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function openDraft(id){const l=leads.find(x=>x.id===Number(id));if(!l)return;$("modalTitle").textContent="Seguimiento · "+l.name;$("modalSub").textContent=l.property+" · "+l.phone;$("draftText").value=l.draft;$("modalBack").classList.add("show")}
+$("leadRows").addEventListener("click",e=>{const row=e.target.closest("tr[data-id]");if(row)openDraft(row.dataset.id)});
+$("tasks").addEventListener("click",e=>{const d=e.target.closest("[data-draft]"),done=e.target.closest("[data-done]");if(d)openDraft(d.dataset.draft);if(done){const l=leads.find(x=>x.id===Number(done.dataset.done));activities.unshift([l.name,"Seguimiento marcado como realizado","Ahora"]);leads=leads.filter(x=>x.id!==l.id);save();render();toast("Seguimiento actualizado en esta demo") }});
+$("search").addEventListener("input",render);$("statusFilter").addEventListener("change",render);
+$("closeModal").onclick=()=>$("modalBack").classList.remove("show");
+$("modalBack").addEventListener("click",e=>{if(e.target===$("modalBack"))$("modalBack").classList.remove("show")});
+$("copyDraft").onclick=async()=>{try{await navigator.clipboard.writeText($("draftText").value);toast("Borrador copiado")}catch{ $("draftText").select();document.execCommand("copy");toast("Borrador copiado")}};
+$("addLead").onclick=()=>{const name=prompt("Nombre del nuevo contacto:");if(!name)return;const property=prompt("¿Qué inmueble le interesa?")||"Interés pendiente";const phone=prompt("Teléfono (opcional):")||"Sin teléfono";leads.unshift({id:Date.now(),name,phone,property,budget:"Por confirmar",status:"new",last:"Ahora",need:"Nuevo contacto añadido manualmente.",draft:"Hola, "+name+". Gracias por contactar con nosotros. ¿En qué podemos ayudarte?"});save();render();toast("Contacto añadido")};
+document.querySelectorAll(".nav button").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");const v=b.dataset.view;const titles={overview:["Buenos días 👋","Aquí tienes lo que está pasando con tus oportunidades.","Oportunidades recientes"],leads:["Oportunidades","Todos tus contactos en un mismo lugar.","Todas las oportunidades"],followups:["Seguimientos","Contactos que necesitan una respuesta.","Contactos pendientes"],visits:["Visitas","Organiza las próximas visitas.","Agenda de visitas"]};$("pageTitle").textContent=titles[v][0];$("pageSub").textContent=titles[v][1];$("tableTitle").textContent=titles[v][2];$("statusFilter").value=v==="visits"?"visit":v==="followups"?"new":"all";render()}));
+render();
+</script>
+</body></html>
