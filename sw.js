@@ -1,5 +1,5 @@
-const CACHE_NAME="pedidoclaro-shell-v45";
-const APP_SHELL=["./","./index.html","./styles.css?v=33","./app.js?v=35","./manifest.webmanifest","./icon.svg"];
+const CACHE_NAME="pedidoclaro-shell-v46";
+const APP_SHELL=["./","./index.html","./styles.css?v=33","./app.js?v=36","./manifest.webmanifest","./icon.svg"];
 self.addEventListener("install",event=>{
  event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(APP_SHELL)).then(()=>self.skipWaiting()));
 });
