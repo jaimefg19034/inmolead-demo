@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#101b2d"><meta name="description" content="PedidoClaro: bandeja de revisión y preparación de pedidos B2B.">
-<title>PedidoClaro — Operaciones B2B</title><link rel="stylesheet" href="styles.css?v=9"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>PedidoClaro — Operaciones B2B</title><link rel="stylesheet" href="styles.css?v=10"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml">
 </head>
 <body>
 <div class="app">
@@ -65,10 +65,15 @@
   <div class="pagehead"><div><div class="eyebrow">CONTROL DE OPERACIONES</div><h1>Analítica</h1><p>Indicadores calculados en tiempo real a partir de los pedidos locales.</p></div></div>
   <section class="analytics-intro"><div><span class="analytics-intro-label">VISIÓN GENERAL</span><h2>Los datos, más claros.</h2><p>Una lectura visual del estado de tus operaciones y de los clientes con más volumen.</p></div><div class="analytics-intro-mark"><span>↗</span><small>DATOS LOCALES</small></div></section>
   <div class="stats analytics-kpis" id="analytics-kpis"></div>
-  <div class="layout analytics-layout">
-   <section class="panel"><div class="panel-head"><div><h2>Estado de la bandeja</h2><p>Distribución actual de pedidos e incidencias</p></div></div><div class="analytics-status" id="analytics-status"></div></section>
-   <section class="panel"><div class="panel-head"><div><h2>Clientes con mayor volumen</h2><p>Ordenados por valor acumulado de pedidos</p></div></div><div class="analytics-top" id="analytics-top-clients"></div></section>
-  </div>
+  <section class="analytics-guide-strip"><div class="analytics-guide-icon">✦</div><div><b>Cómo leer este panel</b><span>Empieza por el resumen, compara el estado y el valor de los pedidos y termina con clientes, productos y canales.</span></div><span class="analytics-live-tag"><i></i> DATOS DEL DISPOSITIVO</span></section>
+  <section class="analytics-grid">
+   <article class="panel analytics-panel analytics-panel-wide"><div class="panel-head"><div><span class="chart-kicker">01 · OPERACIONES</span><h2>Estado de los pedidos</h2><p>Cuántos pedidos hay en cada fase y qué valor representan</p></div><span class="chart-unit">PEDIDOS + €</span></div><div class="analytics-chart-body" id="analytics-status"></div></article>
+   <article class="panel analytics-panel"><div class="panel-head"><div><span class="chart-kicker">02 · CLIENTES</span><h2>Clientes principales</h2><p>Ranking por valor acumulado</p></div></div><div class="analytics-chart-body" id="analytics-top-clients"></div></article>
+   <article class="panel analytics-panel"><div class="panel-head"><div><span class="chart-kicker">03 · PRODUCTOS</span><h2>Productos más pedidos</h2><p>Unidades acumuladas por referencia</p></div></div><div class="analytics-chart-body" id="analytics-products"></div></article>
+   <article class="panel analytics-panel"><div class="panel-head"><div><span class="chart-kicker">04 · CANALES</span><h2>Origen de los pedidos</h2><p>Cómo llegan los pedidos a la bandeja</p></div></div><div class="analytics-chart-body" id="analytics-channels"></div></article>
+   <article class="panel analytics-panel"><div class="panel-head"><div><span class="chart-kicker">05 · VALOR</span><h2>Distribución de importes</h2><p>Pedidos agrupados por tamaño económico</p></div></div><div class="analytics-chart-body" id="analytics-ticket"></div></article>
+   <article class="panel analytics-panel"><div class="panel-head"><div><span class="chart-kicker">06 · ACTIVIDAD</span><h2>Actividad reciente</h2><p>Volumen de pedidos por fecha registrada</p></div></div><div class="analytics-chart-body" id="analytics-activity"></div></article>
+  </section>
   <div class="banner"><b>Interpretación:</b> el valor total incluye todos los estados, incluso pedidos descartados; el valor aprobado solo suma pedidos aprobados. No son ventas contables ni métricas conectadas a un ERP.</div>
  </section>
  <section class="view" id="view-activity"><div class="pagehead"><div><div class="eyebrow">REGISTRO LOCAL</div><h1>Actividad reciente</h1><p>Acciones realizadas en esta demostración en este navegador.</p></div><button class="btn secondary" id="clear-activity">Limpiar registro</button></div><section class="panel"><div class="panel-head"><div><h2>Historial de acciones</h2><p>No es un registro de auditoría empresarial.</p></div></div><div class="activity-list" id="activity-list"></div></section></section>
@@ -90,5 +95,5 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div><input class="file-input" id="csv-file" type="file" accept=".csv,text/csv"><input class="file-input" id="backup-file" type="file" accept=".json,application/json"><input class="file-input" id="catalog-file" type="file" accept=".csv,text/csv">
 <dialog id="order-dialog"><form method="dialog" id="order-form"><h2>Simular pedido entrante</h2><p class="muted">Se añadirá un pedido ficticio a tu bandeja local.</p><label>Nombre del cliente<input class="field" id="client-name" value="Suministros La Estrella" required maxlength="90"></label><label>Canal de entrada<select class="field" id="channel"><option>Email (simulado)</option><option>PDF adjunto (simulado)</option><option>Excel (simulado)</option><option>WhatsApp (simulado)</option></select></label><div class="modal-actions"><button class="btn secondary" value="cancel">Cancelar</button><button class="btn primary" id="create-order" value="default">Crear pedido</button></div></form></dialog>
 <dialog id="product-dialog"><form method="dialog" id="product-form"><h2 id="product-dialog-title">Añadir producto</h2><p class="muted">Guarda una referencia ficticia en el catálogo local.</p><label>Referencia / SKU<input class="field" id="product-sku" required maxlength="80" placeholder="TOR-INOX-550"></label><label>Nombre del producto<input class="field" id="product-name" required maxlength="160" placeholder="Tornillo inox A2 5×50"></label><div class="product-form-grid"><label>Unidad<input class="field" id="product-unit" maxlength="30" value="ud."></label><label>Precio de referencia (€)<input class="field" id="product-price" type="number" min="0" max="999999" step=".01" required value="0"></label></div><div class="modal-actions"><button class="btn secondary" value="cancel">Cancelar</button><button class="btn primary" id="save-product" value="default">Guardar producto</button></div></form></dialog>
-<script src="app.js?v=21" defer></script>
+<script src="app.js?v=22" defer></script>
 </body></html>
