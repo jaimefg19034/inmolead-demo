@@ -11,7 +11,7 @@ PedidoClaro explora cómo preparar, revisar y exportar pedidos antes de introduc
 - Revisión de líneas, cantidades y precios con límites de validación (1–999.999 unidades y 0–999.999 € por unidad).
 - Confirmación de incidencias y bloqueo de aprobación si quedan pendientes.
 - Aprobación y descarte locales.
-- Exportación CSV de un pedido o de toda la bandeja.
+- Exportación CSV de un pedido o de toda la bandeja.\n- **Exportación Excel `.xlsx` real** para pedidos y catálogo, con encabezados destacados, filtros, primera fila congelada, anchos de columna y formatos numéricos. No requiere librerías ni servicios externos.
 - **Importación CSV** con validación básica, agrupación por pedido y detección de importaciones duplicadas. Si el CSV no incluye número de pedido, agrupa las líneas por cliente dentro de esa importación (en vez de crear un pedido por línea). Cada nueva importación sin número genera un lote independiente.
 - Plantilla CSV descargable.
 - **Catálogo local de productos**: alta y eliminación manual, búsqueda, importación CSV y exportación CSV.
