@@ -46,7 +46,7 @@ def main():
         if token not in restore: raise SystemExit("Falta protección en la restauración de copias: "+token)
     if restore.index("const nextState=")>restore.index("if(!confirm(") or restore.index("state=nextState;")<restore.index("backupData();"):
         raise SystemExit("La restauración no prepara los datos antes de sustituir el estado")
-    for token in ("async function csvFingerprint(content)", "function auditImportRows(rows,kind,fingerprint)", 'const source=get("order")||"__FILE__:"+fingerprint', 'if(state.orders.some(o=>o.sourceId===key)&&item.status!=="rejected")', 'const raw=await file.text(),fingerprint=await csvFingerprint(raw),rows=csvParse(raw)', 'const importBatch="__FILE__:"+stableFingerprint', "importCsvFile(task.file,task.fingerprint)"):
+    for token in ("async function csvFingerprint(content)", "function auditImportRows(rows,kind,fingerprint)", 'const source=get("order")||"__FILE__:"+fingerprint,key=JSON.stringify([source,client])', 'if(state.orders.some(o=>o.sourceId===key)&&item.status!=="rejected")', 'const raw=await file.text(),fingerprint=await csvFingerprint(raw),rows=csvParse(raw)', 'const importBatch="__FILE__:"+stableFingerprint', "importCsvFile(task.file,task.fingerprint)"):
         if token not in js: raise SystemExit("Falta protección contra reimportación CSV: "+token)
     if "audit.issues=audit.rows.filter" not in js or "pendingImport.audit.issues" not in js or "Descargar incidencias" not in source: raise SystemExit("Falta la exportación completa de incidencias CSV")
     import_start=js.index("async function importCsvFile(file,fingerprint){")
@@ -58,7 +58,7 @@ def main():
         raise SystemExit("La importación CSV modifica el estado antes de preparar todos los pedidos")
     for token in ('id="view-catalog"', 'id="catalog-import"', 'id="catalog-export"', 'id="product-dialog"'):
         if token not in source: raise SystemExit("Falta catálogo: "+token)
-    for token in ("catalogSeed", "function renderCatalog", "function catalogCsvExport", "function catalogCsvImport", "catalog-file", "catalogProduct", "Precio distinto al catálogo", "data-catalog-apply", "data-product-edit", "editingCatalogSku", "duplicateSku", "Referencia repetida en el pedido", "product?.price??r.price", "const importBatch=", 'sourceRef=get("order")||"Importación sin número"', "sourceId:key", "v>999999", "const orderIds=new Set(),sourceIds=new Set()", "catalogSkus=new Set()", "referencias SKU duplicadas"):
+    for token in ("catalogSeed", "function renderCatalog", "function catalogCsvExport", "function catalogCsvImport", "catalog-file", "catalogProduct", "Precio distinto al catálogo", "data-catalog-apply", "data-product-edit", "editingCatalogSku", "duplicateSku", "Referencia repetida en el pedido", "product?.price??r.price", "const importBatch=", 'sourceRef=get("order")||"Importación sin número"', "sourceId:key", "JSON.stringify([source,client])", "v>999999", "const orderIds=new Set(),sourceIds=new Set()", "catalogSkus=new Set()", "referencias SKU duplicadas"):
         if token not in js: raise SystemExit("Falta funcionalidad catálogo: "+token)
     for token in ('data-view="clients"','data-view="analytics"'):
         if token not in source: raise SystemExit("Falta navegación: "+token)
