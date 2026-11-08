@@ -30,6 +30,12 @@ $("approve")?.addEventListener("click",()=>{if(issues(o)){notify("Resuelve todas
 $("reject")?.addEventListener("click",()=>{if(!confirm("¿Descartar este pedido ficticio?"))return;o.status="rejected";log("Descartó "+o.id+" en la demo",o.id);render();notify("Pedido descartado en la demo.");});
 $("export-one")?.addEventListener("click",()=>exportCsv([o]));$("export-one-xlsx")?.addEventListener("click",()=>exportOrdersXlsx([o]));}
 function safeCell(v){let s=String(v??"");if(/^[\s]*[=+@\-]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';}
+function downloadImportErrors(filename,headers,errors){
+ if(!errors.length)return;
+ const rows=[["fila_csv","motivo",...headers],...errors.map(e=>[e.row,e.reason,...e.values])];
+ const csv="\\ufeff"+rows.map(row=>row.map(safeCell).join(";")).join("\\r\\n");
+ downloadFile(filename,csv,"text/csv;charset=utf-8");
+}
 
 // Generador XLSX mínimo sin dependencias externas: libro real compatible con Excel.
 function xmlEsc(value){return String(value??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&apos;");}
@@ -40,7 +46,7 @@ function zipStore(files){
  for(const [name,content] of Object.entries(files)){
   const n=enc.encode(name),data=typeof content==="string"?enc.encode(content):content,crc=crc32(data);
   const h=new Uint8Array(30+n.length),v=new DataView(h.buffer);
-  v.setUint32(0,0x04034b50,true);v.setUint16(4,20,true);v.setUint16(6,0,true);v.setUint16(8,0,true);v.setUint16(10,0,true);v.setUint16(12,0,true);v.setUint32(14,crc,true);v.setUint32(18,data.length,true);v.setUint32(22,data.length,true);v.setUint16(26,n.length,true);v.setUint16(28,0,true);h.set(n,30);
+  v.setUint32(0,0x04034b50,true);v.setUint16(4,20,true);v.setUint16(6,0,true);v.setUint16(8,0,true);v.setUint16(10,0,true);v.setUint16(12,0,true);v.setUint16(14,0x21,true);v.setUint32(14,crc,true);v.setUint32(18,data.length,true);v.setUint32(22,data.length,true);v.setUint16(26,n.length,true);v.setUint16(28,0,true);h.set(n,30);
   local.push(h,data);
   const c=new Uint8Array(46+n.length),d=new DataView(c.buffer);
   d.setUint32(0,0x02014b50,true);d.setUint16(4,20,true);d.setUint16(6,20,true);d.setUint16(8,0,true);d.setUint16(10,0,true);d.setUint16(12,0,true);d.setUint16(14,0,true);d.setUint32(16,crc,true);d.setUint32(20,data.length,true);d.setUint32(24,data.length,true);d.setUint16(28,n.length,true);d.setUint16(30,0,true);d.setUint16(32,0,true);d.setUint16(34,0,true);d.setUint16(36,0,true);d.setUint32(38,0,true);d.setUint32(42,offset,true);c.set(n,46);central.push(c);offset+=h.length+data.length;
@@ -53,12 +59,12 @@ function downloadXlsx(filename,sheetName,headers,records,widths,numericCols=[],m
  const matrix=[headers,...records],lastCol=excelCol(headers.length),lastRow=matrix.length;
  const cols=widths.map((w,i)=>'<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+w+'" customWidth="1"/>').join("");
  const rows=matrix.map((row,ri)=>'<row r="'+(ri+1)+'"'+(ri===0?' ht="28" customHeight="1"':"")+'>'+row.map((value,ci)=>{
-  const ref=excelCol(ci+1)+(ri+1),style=ri===0?1:moneyCols.includes(ci)?3:numericCols.includes(ci)?2:0;
+  const ref=excelCol(ci+1)+(ri+1),style=ri===0?1:moneyCols.includes(ci)?3:numericCols.includes(ci)?4:0;
   if(typeof value==="number"&&Number.isFinite(value))return '<c r="'+ref+'" s="'+style+'"><v>'+value+'</v></c>';
   return '<c r="'+ref+'" s="'+style+'" t="inlineStr"><is><t xml:space="preserve">'+xmlEsc(value)+'</t></is></c>';
  }).join("")+'</row>').join("");
  const sheet='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>'+cols+'</cols><sheetData>'+rows+'</sheetData><autoFilter ref="A1:'+lastCol+lastRow+'"/></worksheet>';
- const styles='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Aptos"/></font><font><b/><color rgb="FFFFFFFF"/><sz val="11"/><name val="Aptos"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF172B4D"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><bottom style="thin"><color rgb="FFDCE3ED"/></bottom><left/><right/><top/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="4"><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf><xf numFmtId="1" fontId="0" fillId="0" borderId="1" xfId="0"/><xf numFmtId="4" fontId="0" fillId="0" borderId="1" xfId="0"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+ const styles='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Aptos"/></font><font><b/><color rgb="FFFFFFFF"/><sz val="11"/><name val="Aptos"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF172B4D"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><bottom style="thin"><color rgb="FFDCE3ED"/></bottom><left/><right/><top/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="5"><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf><xf numFmtId="1" fontId="0" fillId="0" borderId="1" xfId="0"/><xf numFmtId="4" fontId="0" fillId="0" borderId="1" xfId="0"/><xf numFmtId="3" fontId="0" fillId="0" borderId="1" xfId="0"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
  const files={"[Content_Types].xml":'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>',"_rels/.rels":'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',"xl/workbook.xml":'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="'+xmlEsc(sheetName.slice(0,31))+'" sheetId="1" r:id="rId1"/></sheets></workbook>',"xl/_rels/workbook.xml.rels":'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>',"xl/styles.xml":styles,"xl/worksheets/sheet1.xml":sheet};
  const blob=zipStore(files),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
  notify("Excel generado: "+records.length+" filas.");
@@ -98,21 +104,24 @@ async function catalogCsvImport(file){
  if(file.size>2*1024*1024)throw new Error("El catálogo supera el límite de 2 MB.");
  const rows=csvParse(await file.text());if(rows.length<2)throw new Error("El CSV está vacío o solo contiene encabezados.");
  if(rows.length>5001)throw new Error("Máximo 5.000 productos por importación.");
- const headers=rows.shift().map(normHeader),idx=(...names)=>headers.findIndex(h=>names.includes(h));
+ const originalHeaders=rows.shift(),headers=originalHeaders.map(normHeader),idx=(...names)=>headers.findIndex(h=>names.includes(h));
  const cols={sku:idx("referencia","sku","codigo","codigo_producto"),name:idx("producto","product","descripcion","nombre"),unit:idx("unidad","unit","ud"),price:idx("precio_unitario","precio","price","unit_price")};
  const missing=["sku","name","price"].filter(k=>cols[k]<0);if(missing.length)throw new Error("Faltan columnas: "+missing.join(", ")+".");
- let added=0,updated=0,invalid=0;
- for(const row of rows){
-  const get=k=>cols[k]<0?"":String(row[cols[k]]??"").trim();
+ let added=0,updated=0;const errors=[];
+ for(let i=0;i<rows.length;i++){
+  const row=rows[i],get=k=>cols[k]<0?"":String(row[cols[k]]??"").trim();
   const sku=get("sku").slice(0,80),name=get("name").slice(0,160),unit=(get("unit")||"ud.").slice(0,30),price=parseNumber(get("price"));
-  if(!sku||!name||!get("price")||!Number.isFinite(price)||price<0||price>999999){invalid++;continue;}
+  let reason="";
+  if(!sku)reason="Falta la referencia SKU";else if(!name)reason="Falta el nombre del producto";else if(!get("price")||!Number.isFinite(price))reason="Precio vacío o no numérico";else if(price<0||price>999999)reason="Precio fuera del límite permitido (0–999.999)";
+  if(reason){errors.push({row:i+2,reason,values:row});continue;}
   const found=state.catalog.find(p=>p.sku.toLocaleLowerCase("es")===sku.toLocaleLowerCase("es"));
   if(found){found.name=name;found.unit=unit;found.price=Math.round(price*100)/100;updated++;}
   else{state.catalog.push({sku,name,unit,price:Math.round(price*100)/100});added++;}
  }
- if(!added&&!updated)throw new Error("No se encontraron productos válidos.");
+ if(errors.length)downloadImportErrors("pedidoclaro-errores-catalogo.csv",originalHeaders,errors);
+ if(!added&&!updated)throw new Error("No se encontraron productos válidos. Se ha descargado un CSV con las filas rechazadas.");
  state.catalog.sort((a,b)=>a.sku.localeCompare(b.sku,"es"));persist();log("Importó catálogo: "+added+" nuevos y "+updated+" actualizados");renderCatalog();
- notify("Catálogo actualizado: "+added+" nuevos, "+updated+" actualizados y "+invalid+" omitidos.");
+ notify("Catálogo actualizado: "+added+" nuevos, "+updated+" actualizados y "+errors.length+" omitidos."+(errors.length?" Se descargó un CSV con los errores.":""));
 }
 
 function renderActivity(){$("activity-list").innerHTML=state.activity.length?state.activity.map(a=>'<div class="activity-row"><span class="activity-dot"></span><div><p>'+esc(a.message)+'</p><small>'+esc(a.time)+(a.id?" · "+esc(a.id):"")+'</small></div></div>').join(""):'<div class="empty-state"><div><div class="empty-icon">◷</div><b>Sin actividad todavía</b><p>Las acciones de esta demo aparecerán aquí.</p></div></div>';}
@@ -131,17 +140,19 @@ async function importCsvFile(file){
  if(!file)return;if(file.size>2*1024*1024)throw new Error("El CSV supera el límite de 2 MB.");
  const rows=csvParse(await file.text());if(rows.length<2)throw new Error("El CSV está vacío o solo contiene encabezados.");
  if(rows.length>1001)throw new Error("Máximo 1.000 líneas por importación.");
- const headers=rows.shift().map(normHeader),idx=(...names)=>headers.findIndex(h=>names.includes(h));
+ const originalHeaders=rows.shift(),headers=originalHeaders.map(normHeader),idx=(...names)=>headers.findIndex(h=>names.includes(h));
  const cols={order:idx("pedido","order_id","id_pedido","numero_pedido"),client:idx("cliente","customer","empresa"),sku:idx("referencia","sku","codigo","codigo_producto"),name:idx("producto","product","descripcion","nombre"),qty:idx("cantidad","qty","quantity"),unit:idx("unidad","unit","ud"),price:idx("precio_unitario","precio","price","unit_price")};
  const required=["client","sku","name","qty","price"];const missing=required.filter(k=>cols[k]<0);
  if(missing.length)throw new Error("Faltan columnas obligatorias: "+missing.join(", ")+". Descarga la plantilla para ver el formato.");
- const groups=new Map();let invalid=0;const importBatch="SIN-ID-"+new Date().toISOString()+"-"+state.counter;
+ const groups=new Map(),errors=[];const importBatch="SIN-ID-"+new Date().toISOString()+"-"+state.counter;
  rows.forEach((r,i)=>{const get=k=>cols[k]<0?"":String(r[cols[k]]??"").trim(),client=get("client"),sku=get("sku"),name=get("name"),qty=parseNumber(get("qty")),price=parseNumber(get("price")),unit=get("unit")||"ud.",source=get("order")||importBatch,sourceRef=get("order")||"Importación sin número";
- if(!client||!sku||!name||!get("qty")||!get("price")||!Number.isInteger(qty)||qty<1||qty>999999||!Number.isFinite(price)||price<0||price>999999){invalid++;return;}
+ let reason="";
+ if(!client)reason="Falta el cliente";else if(!sku)reason="Falta la referencia SKU";else if(!name)reason="Falta el nombre del producto";else if(!get("qty")||!Number.isFinite(qty))reason="Cantidad vacía o no numérica";else if(!Number.isInteger(qty)||qty<1||qty>999999)reason="Cantidad fuera del límite (1–999.999, sin decimales)";else if(!get("price")||!Number.isFinite(price))reason="Precio vacío o no numérico";else if(price<0||price>999999)reason="Precio fuera del límite (0–999.999)";
+ if(reason){errors.push({row:i+2,reason,values:r});return;}
  const key=source+"|"+client;if(!groups.has(key))groups.set(key,{sourceId:key,sourceRef,client,lines:[]});
  const catalogProduct=state.catalog.find(p=>p.sku.toLocaleLowerCase("es")===sku.toLocaleLowerCase("es"));const roundedPrice=Math.round(price*100)/100;const duplicateSku=groups.get(key).lines.some(line=>line.sku.toLocaleLowerCase("es")===sku.toLocaleLowerCase("es"));const issue=duplicateSku?"Referencia repetida en el pedido: confirma si son líneas distintas":!catalogProduct?"Referencia no encontrada en el catálogo: valida el SKU":Math.abs(catalogProduct.price-roundedPrice)>0.01?"Precio distinto al catálogo (referencia: "+money(catalogProduct.price)+")":"Importada: confirma cantidad y producto";groups.get(key).lines.push({name:name.slice(0,160),sku:sku.slice(0,80),qty,unit:unit.slice(0,30),price:roundedPrice,issue,checked:false});
  });
- if(!groups.size)throw new Error("No se ha encontrado ninguna línea válida. Revisa cantidades, precios y columnas.");
+ if(errors.length)downloadImportErrors("pedidoclaro-errores-pedidos.csv",originalHeaders,errors);\n if(!groups.size)throw new Error("No se ha encontrado ninguna línea válida. Se ha descargado un CSV con las filas rechazadas.");
  let added=0,skipped=0;
  for(const g of groups.values()){
   if(state.orders.some(o=>o.sourceId===g.sourceId)){skipped++;continue;}
@@ -151,7 +162,7 @@ async function importCsvFile(file){
  }
  if(!added)throw new Error("Todos los pedidos del fichero ya estaban importados.");
  state.selected=state.orders[0].id;log("Importó "+added+" pedido(s) desde CSV; omitidos por duplicado: "+skipped);render();
- notify("Importados "+added+" pedido(s). Líneas no válidas omitidas: "+invalid+". Duplicados omitidos: "+skipped+".");
+ notify("Importados "+added+" pedido(s). Líneas rechazadas: "+errors.length+". Duplicados omitidos: "+skipped+"."+(errors.length?" Se descargó un CSV con los errores.":""));
 }
 function backupData(){
  const payload={app:"PedidoClaro",version:2,exportedAt:new Date().toISOString(),counter:state.counter,orders:state.orders,activity:state.activity,catalog:state.catalog};
