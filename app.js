@@ -269,7 +269,7 @@ let pendingImport=null;
 function auditImportRows(rows,kind){
  const originalHeaders=rows[0],headers=originalHeaders.map(normHeader),idx=(...names)=>headers.findIndex(h=>names.includes(h));
  validateCsvHeaders(originalHeaders);
- const audit={headers:originalHeaders,rows:[],valid:0,rejected:0,warnings:0,duplicates:0,groups:0,importable:0,added:0,updated:0,errors:[],mapping:[]};
+ const audit={headers:originalHeaders,rows:[],valid:0,clean:0,rejected:0,warnings:0,duplicates:0,groups:0,importable:0,added:0,updated:0,errors:[],mapping:[]};
  if(kind==="orders"){
   const cols={order:idx("pedido","order_id","id_pedido","numero_pedido"),client:idx("cliente","customer","empresa"),sku:idx("referencia","sku","codigo","codigo_producto"),name:idx("producto","product","descripcion","nombre"),qty:idx("cantidad","qty","quantity"),unit:idx("unidad","unit","ud"),price:idx("precio_unitario","precio","price","unit_price")};
   const required=["client","sku","name","qty","price"],missing=required.filter(k=>cols[k]<0);
@@ -299,7 +299,7 @@ function auditImportRows(rows,kind){
    if(item.status==="rejected"||(item.reason&&item.status==="ok")){item.status="rejected";audit.rejected++;audit.errors.push({row:item.row,reason:item.reason,values:r});}
    else if(item.status==="duplicate"){audit.duplicates++;}
    else if(item.status==="warning"){audit.warnings++;audit.valid++;}
-   else if(item.status==="ok"){audit.valid++;}
+   else if(item.status==="ok"){audit.valid++;audit.clean++;}
    audit.rows.push(item);
   }
   audit.groups=groupMap.size;
@@ -339,7 +339,7 @@ async function showImportPreview(file,kind){
  const audit=auditImportRows(rows,kind),dataCount=rows.length-1;
  $("import-preview-title").textContent=kind==="orders"?"Informe de calidad · Pedidos":"Informe de calidad · Catálogo";
  $("import-preview-file").textContent=file.name+" · "+(file.size/1024).toFixed(1)+" KB · "+dataCount.toLocaleString("es-ES")+" filas";
- $("import-preview-summary").innerHTML='<div class="import-audit-stat"><span>Filas válidas</span><b class="audit-good">'+audit.valid+'</b></div><div class="import-audit-stat"><span>Para revisar</span><b class="audit-warn">'+audit.warnings+'</b></div><div class="import-audit-stat"><span>Rechazadas</span><b class="audit-bad">'+audit.rejected+'</b></div><div class="import-audit-stat"><span>Duplicadas</span><b class="audit-neutral">'+audit.duplicates+'</b></div>';
+ $("import-preview-summary").innerHTML='<div class="import-audit-stat"><span>Correctas</span><b class="audit-good">'+audit.clean+'</b></div><div class="import-audit-stat"><span>Para revisar</span><b class="audit-warn">'+audit.warnings+'</b></div><div class="import-audit-stat"><span>Rechazadas</span><b class="audit-bad">'+audit.rejected+'</b></div><div class="import-audit-stat"><span>Ya importadas</span><b class="audit-neutral">'+audit.duplicates+'</b></div>';
  $("import-preview-mapping").innerHTML='<div class="audit-section-title"><span>01</span><div><b>Columnas reconocidas</b><small>Correspondencia detectada automáticamente</small></div></div><div class="audit-mapping">'+audit.mapping.map(([name,index])=>'<span><i>✓</i>'+esc(name)+'<small>'+esc(audit.headers[index])+'</small></span>').join("")+'</div>';
  const rowsToShow=audit.rows.slice(0,10);
  $("import-preview-content").innerHTML='<div class="audit-section-title"><span>02</span><div><b>Revisión fila a fila</b><small>Primeras '+rowsToShow.length+' filas · '+dataCount+' en total</small></div></div><div class="import-audit-table-wrap"><table class="import-audit-table"><thead><tr><th>FILA</th><th>RESULTADO</th><th>CLIENTE / PRODUCTO</th><th>DETALLE</th></tr></thead><tbody>'+rowsToShow.map(x=>{
