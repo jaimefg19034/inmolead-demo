@@ -360,7 +360,7 @@ function catalogMismatchWarnings(product,name,unit,hasUnit){
  if(hasUnit&&unit&&key(unit)!==key(product.unit))warnings.push("Unidad distinta al catálogo (catálogo: "+product.unit+")");
  return warnings;
 }
-function auditImportRows(rows,kind){
+function auditImportRows(rows,kind,fingerprint){
  const originalHeaders=rows[0],headers=originalHeaders.map(normHeader),idx=(...names)=>headers.findIndex(h=>names.includes(h));
  validateCsvHeaders(originalHeaders);
  const audit={headers:originalHeaders,rows:[],valid:0,clean:0,rejected:0,warnings:0,duplicates:0,groups:0,importable:0,added:0,updated:0,errors:[],mapping:[]};
@@ -378,7 +378,7 @@ function auditImportRows(rows,kind){
     const client=get("client"),sku=get("sku"),name=get("name"),qty=parseNumber(get("qty")),price=parseNumber(get("price")),clientRules=rulesForClient(client);
     if(!client)item.reason="Falta el cliente";else if(!sku)item.reason="Falta la referencia SKU";else if(!name)item.reason="Falta el nombre del producto";else if(!get("qty")||!Number.isFinite(qty))item.reason="Cantidad vacía o no numérica";else if(!Number.isInteger(qty)||qty<1||qty>clientRules.maxQuantity)item.reason="Cantidad fuera del límite configurado para "+client+" (1–"+clientRules.maxQuantity.toLocaleString("es-ES")+")";else if(!get("price")||!Number.isFinite(price))item.reason="Precio vacío o no numérico";else if(price<0||price>999999)item.reason="Precio fuera del límite (0–999.999)";
     if(!item.reason){
-     const source=get("order")||"__LOTE_PREVIEW__",key=source+"|"+client,sk=sku.toLocaleLowerCase("es");
+     const source=get("order")||"__FILE__:"+fingerprint,key=source+"|"+client,sk=sku.toLocaleLowerCase("es");
      if(!groupMap.has(key))groupMap.set(key,{sourceId:key,client,order:get("order"),lines:0,importableLines:0,existing:false});
      const group=groupMap.get(key);group.lines++;
      if(!skuSets.has(key))skuSets.set(key,new Set());
@@ -390,7 +390,7 @@ function auditImportRows(rows,kind){
       const mismatches=catalogMismatchWarnings(product,name,get("unit"),cols.unit>=0);
       if(mismatches.length){if(item.status==="ok")item.status="warning";item.reason+=(item.reason?"; ":"")+mismatches.join("; ");}
      }
-     if(get("order")&&state.orders.some(o=>o.sourceId===key)&&item.status!=="rejected"){item.status="duplicate";item.reason="Este pedido y cliente ya se importaron anteriormente";group.existing=true;}
+     if(state.orders.some(o=>o.sourceId===key)&&item.status!=="rejected"){item.status="duplicate";item.reason="Este pedido y cliente ya se importaron anteriormente";group.existing=true;}
      if(item.status!=="rejected"&&item.status!=="duplicate")group.importableLines++;
     }
    }
@@ -431,11 +431,11 @@ function auditImportRows(rows,kind){
 async function showImportPreview(file,kind){
  if(!file)return;
  if(file.size>2*1024*1024)throw new Error("El fichero supera el límite de 2 MB.");
- const rows=csvParse(await file.text());
+ const raw=await file.text(),fingerprint=await csvFingerprint(raw),rows=csvParse(raw);
  if(rows.length<2)throw new Error("El CSV está vacío o solo contiene encabezados.");
  const max=kind==="orders"?1001:5001;
  if(rows.length>max)throw new Error("Se supera el máximo de "+(max-1).toLocaleString("es-ES")+" filas.");
- const audit=auditImportRows(rows,kind),dataCount=rows.length-1;
+ const audit=auditImportRows(rows,kind,fingerprint),dataCount=rows.length-1;
  $("import-preview-title").textContent=kind==="orders"?"Informe de calidad · Pedidos":"Informe de calidad · Catálogo";
  $("import-preview-file").textContent=file.name+" · "+(file.size/1024).toFixed(1)+" KB · "+dataCount.toLocaleString("es-ES")+" filas";
  $("import-preview-summary").innerHTML='<div class="import-audit-stat"><span>Correctas</span><b class="audit-good">'+audit.clean+'</b></div><div class="import-audit-stat"><span>Para revisar</span><b class="audit-warn">'+audit.warnings+'</b></div><div class="import-audit-stat"><span>Rechazadas</span><b class="audit-bad">'+audit.rejected+'</b></div><div class="import-audit-stat"><span>Ya importadas</span><b class="audit-neutral">'+audit.duplicates+'</b></div>';
@@ -453,10 +453,16 @@ async function showImportPreview(file,kind){
  $("import-preview-errors").disabled=!audit.issues.length;
  $("import-preview-confirm").disabled=!importCount;
  $("import-preview-confirm").textContent=importCount?(kind==="orders"?"Importar "+importCount+" pedido(s)":"Aplicar "+importCount+" cambio(s)"):"No hay datos importables";
- pendingImport={file,kind,audit,headers:rows[0]};
+ pendingImport={file,kind,audit,headers:rows[0],fingerprint};
  $("import-preview-dialog").showModal();
 }
 
+async function csvFingerprint(content){
+ if(globalThis.crypto?.subtle){const digest=await globalThis.crypto.subtle.digest("SHA-256",new TextEncoder().encode(content));return [...new Uint8Array(digest)].map(x=>x.toString(16).padStart(2,"0")).join("");}
+ let a=2166136261,b=2246822519;
+ for(let i=0;i<content.length;i++){const c=content.charCodeAt(i);a=Math.imul(a^c,16777619);b=Math.imul(b^c,3266489917);}
+ return (a>>>0).toString(16).padStart(8,"0")+(b>>>0).toString(16).padStart(8,"0");
+}
 function validateCsvHeaders(headers){
  const normalized=headers.map(normHeader),empty=normalized.findIndex(h=>!h);
  if(empty>=0)throw new Error("La columna "+(empty+1)+" no tiene nombre. Corrige el encabezado.");
@@ -466,16 +472,16 @@ function validateCsvHeaders(headers){
 }
 
 function parseNumber(s){let v=String(s??"").trim().replace(/[\s\u00a0]/g,"").replace(/[€$£]/g,"");if(v.includes(",")&&v.includes(".")){if(v.lastIndexOf(",")>v.lastIndexOf("."))v=v.replace(/\./g,"").replace(",",".");else v=v.replace(/,/g,"");}else v=v.replace(",",".");return Number(v);}
-async function importCsvFile(file){
+async function importCsvFile(file,fingerprint){
  if(!file)return;if(file.size>2*1024*1024)throw new Error("El CSV supera el límite de 2 MB.");
- const rows=csvParse(await file.text());if(rows.length<2)throw new Error("El CSV está vacío o solo contiene encabezados.");
+ const raw=await file.text(),stableFingerprint=fingerprint||await csvFingerprint(raw),rows=csvParse(raw);if(rows.length<2)throw new Error("El CSV está vacío o solo contiene encabezados.");
  if(rows.length>1001)throw new Error("Máximo 1.000 líneas por importación.");
  const originalHeaders=rows.shift(),headers=originalHeaders.map(normHeader),idx=(...names)=>headers.findIndex(h=>names.includes(h));
  validateCsvHeaders(originalHeaders);
  const cols={order:idx("pedido","order_id","id_pedido","numero_pedido"),client:idx("cliente","customer","empresa"),sku:idx("referencia","sku","codigo","codigo_producto"),name:idx("producto","product","descripcion","nombre"),qty:idx("cantidad","qty","quantity"),unit:idx("unidad","unit","ud"),price:idx("precio_unitario","precio","price","unit_price")};
  const required=["client","sku","name","qty","price"];const missing=required.filter(k=>cols[k]<0);
  if(missing.length)throw new Error("Faltan columnas obligatorias: "+missing.join(", ")+". Descarga la plantilla para ver el formato.");
- const groups=new Map(),errors=[];const importBatch="SIN-ID-"+new Date().toISOString()+"-"+state.counter;
+ const groups=new Map(),errors=[];const importBatch="__FILE__:"+stableFingerprint;
  rows.forEach((r,i)=>{if(r.length!==originalHeaders.length){errors.push({row:i+2,reason:"Número de columnas distinto al encabezado",values:r});return;}const get=k=>cols[k]<0?"":String(r[cols[k]]??"").trim(),client=get("client"),sku=get("sku"),name=get("name"),qty=parseNumber(get("qty")),price=parseNumber(get("price")),unit=get("unit")||"ud.",source=get("order")||importBatch,sourceRef=get("order")||"Importación sin número";
  let reason="";
  if(!client)reason="Falta el cliente";else if(!sku)reason="Falta la referencia SKU";else if(!name)reason="Falta el nombre del producto";else if(!get("qty")||!Number.isFinite(qty))reason="Cantidad vacía o no numérica";else if(!Number.isInteger(qty)||qty<1||qty>rulesForClient(client).maxQuantity)reason="Cantidad fuera del límite configurado para "+client+" (1–"+rulesForClient(client).maxQuantity.toLocaleString("es-ES")+")";else if(!get("price")||!Number.isFinite(price))reason="Precio vacío o no numérico";else if(price<0||price>999999)reason="Precio fuera del límite (0–999.999)";
@@ -614,7 +620,7 @@ $("import-preview-confirm").onclick=async()=>{
  if(!pendingImport)return;
  const task=pendingImport;pendingImport=null;$("import-preview-dialog").close();
  const input=task.kind==="orders"?$("csv-file"):$("catalog-file");
- try{if(task.kind==="orders")await importCsvFile(task.file);else await catalogCsvImport(task.file);}
+ try{if(task.kind==="orders")await importCsvFile(task.file,task.fingerprint);else await catalogCsvImport(task.file);}
  catch(err){notify(err.message||"No se pudo completar la importación.");}
  finally{input.value="";}
 };
