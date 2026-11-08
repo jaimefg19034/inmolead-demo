@@ -33,7 +33,7 @@ function safeCell(v){let s=String(v??"");if(/^[\s]*[=+@\-]/.test(s))s="'"+s;retu
 function downloadImportErrors(filename,headers,errors){
  if(!errors.length)return;
  const rows=[["fila_csv","motivo",...headers],...errors.map(e=>[e.row,e.reason,...e.values])];
- const csv="\\ufeff"+rows.map(row=>row.map(safeCell).join(";")).join("\\r\\n");
+ const csv=String.fromCharCode(0xfeff)+rows.map(row=>row.map(safeCell).join(";")).join(String.fromCharCode(13,10));
  downloadFile(filename,csv,"text/csv;charset=utf-8");
 }
 
@@ -46,10 +46,10 @@ function zipStore(files){
  for(const [name,content] of Object.entries(files)){
   const n=enc.encode(name),data=typeof content==="string"?enc.encode(content):content,crc=crc32(data);
   const h=new Uint8Array(30+n.length),v=new DataView(h.buffer);
-  v.setUint32(0,0x04034b50,true);v.setUint16(4,20,true);v.setUint16(6,0,true);v.setUint16(8,0,true);v.setUint16(10,0,true);v.setUint16(12,0,true);v.setUint16(14,0x21,true);v.setUint32(14,crc,true);v.setUint32(18,data.length,true);v.setUint32(22,data.length,true);v.setUint16(26,n.length,true);v.setUint16(28,0,true);h.set(n,30);
+  v.setUint32(0,0x04034b50,true);v.setUint16(4,20,true);v.setUint16(6,0,true);v.setUint16(8,0,true);v.setUint16(10,0,true);v.setUint16(12,0x21,true);v.setUint32(14,crc,true);v.setUint32(18,data.length,true);v.setUint32(22,data.length,true);v.setUint16(26,n.length,true);v.setUint16(28,0,true);h.set(n,30);
   local.push(h,data);
   const c=new Uint8Array(46+n.length),d=new DataView(c.buffer);
-  d.setUint32(0,0x02014b50,true);d.setUint16(4,20,true);d.setUint16(6,20,true);d.setUint16(8,0,true);d.setUint16(10,0,true);d.setUint16(12,0,true);d.setUint16(14,0,true);d.setUint32(16,crc,true);d.setUint32(20,data.length,true);d.setUint32(24,data.length,true);d.setUint16(28,n.length,true);d.setUint16(30,0,true);d.setUint16(32,0,true);d.setUint16(34,0,true);d.setUint16(36,0,true);d.setUint32(38,0,true);d.setUint32(42,offset,true);c.set(n,46);central.push(c);offset+=h.length+data.length;
+  d.setUint32(0,0x02014b50,true);d.setUint16(4,20,true);d.setUint16(6,20,true);d.setUint16(8,0,true);d.setUint16(10,0,true);d.setUint16(12,0,true);d.setUint16(14,0x21,true);d.setUint32(16,crc,true);d.setUint32(20,data.length,true);d.setUint32(24,data.length,true);d.setUint16(28,n.length,true);d.setUint16(30,0,true);d.setUint16(32,0,true);d.setUint16(34,0,true);d.setUint16(36,0,true);d.setUint32(38,0,true);d.setUint32(42,offset,true);c.set(n,46);central.push(c);offset+=h.length+data.length;
  }
  const centralSize=central.reduce((n,b)=>n+b.length,0),end=new Uint8Array(22),v=new DataView(end.buffer);
  v.setUint32(0,0x06054b50,true);v.setUint16(4,0,true);v.setUint16(6,0,true);v.setUint16(8,central.length,true);v.setUint16(10,central.length,true);v.setUint32(12,centralSize,true);v.setUint32(16,offset,true);v.setUint16(20,0,true);
@@ -152,7 +152,8 @@ async function importCsvFile(file){
  const key=source+"|"+client;if(!groups.has(key))groups.set(key,{sourceId:key,sourceRef,client,lines:[]});
  const catalogProduct=state.catalog.find(p=>p.sku.toLocaleLowerCase("es")===sku.toLocaleLowerCase("es"));const roundedPrice=Math.round(price*100)/100;const duplicateSku=groups.get(key).lines.some(line=>line.sku.toLocaleLowerCase("es")===sku.toLocaleLowerCase("es"));const issue=duplicateSku?"Referencia repetida en el pedido: confirma si son líneas distintas":!catalogProduct?"Referencia no encontrada en el catálogo: valida el SKU":Math.abs(catalogProduct.price-roundedPrice)>0.01?"Precio distinto al catálogo (referencia: "+money(catalogProduct.price)+")":"Importada: confirma cantidad y producto";groups.get(key).lines.push({name:name.slice(0,160),sku:sku.slice(0,80),qty,unit:unit.slice(0,30),price:roundedPrice,issue,checked:false});
  });
- if(errors.length)downloadImportErrors("pedidoclaro-errores-pedidos.csv",originalHeaders,errors);\n if(!groups.size)throw new Error("No se ha encontrado ninguna línea válida. Se ha descargado un CSV con las filas rechazadas.");
+ if(errors.length)downloadImportErrors("pedidoclaro-errores-pedidos.csv",originalHeaders,errors);
+ if(!groups.size)throw new Error("No se ha encontrado ninguna línea válida. Se ha descargado un CSV con las filas rechazadas.");
  let added=0,skipped=0;
  for(const g of groups.values()){
   if(state.orders.some(o=>o.sourceId===g.sourceId)){skipped++;continue;}
