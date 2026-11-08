@@ -57,7 +57,7 @@ def main():
         raise SystemExit("El título no identifica PedidoClaro")
     if len(parser.ids) < 10:
         raise SystemExit("Faltan controles clave de la demo")
-    required = ["id=\"list\"", "id=\"detail\"", "id=\"approve\"", "id=\"parse\"", "No tiene IA", "datos ficticios"]
+    required = ["id=\"list\"", "id=\"detail\"", "id=\"approve\"", "id=\"parse\"", "Sin IA", "datos ficticios"]
     missing = [item for item in required if item.lower() not in source.lower()]
     if missing:
         raise SystemExit("Faltan elementos/avisos requeridos: " + ", ".join(missing))
