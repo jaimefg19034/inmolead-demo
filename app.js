@@ -12,15 +12,16 @@ const $=id=>document.getElementById(id),labels={review:"Por revisar",ready:"List
 let editingCatalogSku=null;
 const selectedOrderIds=new Set();
 const defaultRules={maxQuantity:999999,priceTolerancePct:2,unknownSku:"review",duplicateSku:"review"};
-let state={orders:JSON.parse(JSON.stringify(seed)),activity:[],catalog:JSON.parse(JSON.stringify(catalogSeed)),rules:{...defaultRules},selected:"PD-1048",counter:1048};
+let state={orders:JSON.parse(JSON.stringify(seed)),activity:[],catalog:JSON.parse(JSON.stringify(catalogSeed)),rules:{...defaultRules},customerRules:{},selected:"PD-1048",counter:1048};
 try{const saved=JSON.parse(localStorage.getItem(KEY));if(saved&&Array.isArray(saved.orders)&&Array.isArray(saved.activity))state={...state,...saved};}catch{}
 if(!Array.isArray(state.catalog))state.catalog=JSON.parse(JSON.stringify(catalogSeed));
 state.rules={...defaultRules,...(state.rules||{})};
-state.rules.maxQuantity=Math.min(999999,Math.max(1,Math.floor(Number(state.rules.maxQuantity)||999999)));
-state.rules.priceTolerancePct=Math.min(100,Math.max(0,Number(state.rules.priceTolerancePct)||0));
-if(!["review","block"].includes(state.rules.unknownSku))state.rules.unknownSku="review";
-if(!["review","block"].includes(state.rules.duplicateSku))state.rules.duplicateSku="review";
-function priceDiffers(reference,actual){return Math.abs(Number(reference)-Number(actual))>Math.max(0.01,Math.abs(Number(reference))*state.rules.priceTolerancePct/100);}
+function cleanRuleSet(input){const r={...defaultRules,...(input||{})};r.maxQuantity=Math.min(999999,Math.max(1,Math.floor(Number(r.maxQuantity)||999999)));r.priceTolerancePct=Math.min(100,Math.max(0,Number(r.priceTolerancePct)||0));if(!["review","block"].includes(r.unknownSku))r.unknownSku="review";if(!["review","block"].includes(r.duplicateSku))r.duplicateSku="review";return r;}
+state.rules=cleanRuleSet(state.rules);
+function clientKey(name){return String(name||"Cliente").trim().toLocaleLowerCase("es").replace(/\s+/g," ");}
+function rulesForClient(name){return {...state.rules,...(state.customerRules?.[clientKey(name)]||{})};}
+if(!state.customerRules||typeof state.customerRules!=="object"||Array.isArray(state.customerRules))state.customerRules={};else state.customerRules=Object.fromEntries(Object.entries(state.customerRules).filter(([k,v])=>k&&typeof v==="object"&&!Array.isArray(v)).slice(0,1000).map(([k,v])=>[clientKey(k),cleanRuleSet(v)]));
+function priceDiffers(reference,actual,rules=state.rules){return Math.abs(Number(reference)-Number(actual))>Math.max(0.01,Math.abs(Number(reference))*rules.priceTolerancePct/100);}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch{notify("No se pudo guardar en este navegador.");}}
 function notify(s){const e=$("toast");e.textContent=s;e.classList.add("show");clearTimeout(notify.t);notify.t=setTimeout(()=>e.classList.remove("show"),2600);}
 function log(message,id=""){state.activity.unshift({message,id,time:new Date().toLocaleString("es-ES",{dateStyle:"short",timeStyle:"short"})});state.activity=state.activity.slice(0,100);persist();}
@@ -259,18 +260,18 @@ function auditImportRows(rows,kind){
    const item={row:i+1,values:r,status:"ok",reason:""};
    if(r.length!==originalHeaders.length)item.reason="Número de columnas distinto al encabezado";
    else{
-    const client=get("client"),sku=get("sku"),name=get("name"),qty=parseNumber(get("qty")),price=parseNumber(get("price"));
-    if(!client)item.reason="Falta el cliente";else if(!sku)item.reason="Falta la referencia SKU";else if(!name)item.reason="Falta el nombre del producto";else if(!get("qty")||!Number.isFinite(qty))item.reason="Cantidad vacía o no numérica";else if(!Number.isInteger(qty)||qty<1||qty>state.rules.maxQuantity)item.reason="Cantidad fuera del límite configurado (1–"+state.rules.maxQuantity.toLocaleString("es-ES")+")";else if(!get("price")||!Number.isFinite(price))item.reason="Precio vacío o no numérico";else if(price<0||price>999999)item.reason="Precio fuera del límite (0–999.999)";
+    const client=get("client"),sku=get("sku"),name=get("name"),qty=parseNumber(get("qty")),price=parseNumber(get("price")),clientRules=rulesForClient(client);
+    if(!client)item.reason="Falta el cliente";else if(!sku)item.reason="Falta la referencia SKU";else if(!name)item.reason="Falta el nombre del producto";else if(!get("qty")||!Number.isFinite(qty))item.reason="Cantidad vacía o no numérica";else if(!Number.isInteger(qty)||qty<1||qty>clientRules.maxQuantity)item.reason="Cantidad fuera del límite configurado para "+client+" (1–"+clientRules.maxQuantity.toLocaleString("es-ES")+")";else if(!get("price")||!Number.isFinite(price))item.reason="Precio vacío o no numérico";else if(price<0||price>999999)item.reason="Precio fuera del límite (0–999.999)";
     if(!item.reason){
      const source=get("order")||"__LOTE_PREVIEW__",key=source+"|"+client,sk=sku.toLocaleLowerCase("es");
      if(!groupMap.has(key))groupMap.set(key,{sourceId:key,client,order:get("order"),lines:0,importableLines:0,existing:false});
      const group=groupMap.get(key);group.lines++;
      if(!skuSets.has(key))skuSets.set(key,new Set());
-     if(skuSets.get(key).has(sk)){item.status=state.rules.duplicateSku==="block"?"rejected":"warning";item.reason="Referencia repetida dentro del mismo pedido"+(state.rules.duplicateSku==="block"?" · bloqueada por regla":"");}else skuSets.get(key).add(sk);
+     if(skuSets.get(key).has(sk)){item.status=clientRules.duplicateSku==="block"?"rejected":"warning";item.reason="Referencia repetida dentro del mismo pedido"+(clientRules.duplicateSku==="block"?" · bloqueada por regla":"");}else skuSets.get(key).add(sk);
      const product=state.catalog.find(p=>p.sku.toLocaleLowerCase("es")===sk);
-     if(!product){if(state.rules.unknownSku==="block")item.status="rejected";else if(item.status==="ok")item.status="warning";item.reason+=(item.reason?"; ":"")+"SKU no encontrado en catálogo"+(state.rules.unknownSku==="block"?" · bloqueado por regla":"");}
-     else if(priceDiffers(product.price,Math.round(price*100)/100)){if(item.status==="ok")item.status="warning";item.reason+=(item.reason?"; ":"")+"Precio distinto al catálogo (tolerancia "+state.rules.priceTolerancePct+"%)";}
-     if(get("order")&&state.orders.some(o=>o.sourceId===key)){item.status="duplicate";item.reason="Este pedido y cliente ya se importaron anteriormente";group.existing=true;}
+     if(!product){if(clientRules.unknownSku==="block")item.status="rejected";else if(item.status==="ok")item.status="warning";item.reason+=(item.reason?"; ":"")+"SKU no encontrado en catálogo"+(clientRules.unknownSku==="block"?" · bloqueado por regla":"");}
+     else if(priceDiffers(product.price,Math.round(price*100)/100,clientRules)){if(item.status==="ok")item.status="warning";item.reason+=(item.reason?"; ":"")+"Precio distinto al catálogo (tolerancia "+clientRules.priceTolerancePct+"%)";}
+     if(get("order")&&state.orders.some(o=>o.sourceId===key)&&item.status!=="rejected"){item.status="duplicate";item.reason="Este pedido y cliente ya se importaron anteriormente";group.existing=true;}
      if(item.status!=="rejected"&&item.status!=="duplicate")group.importableLines++;
     }
    }
@@ -357,10 +358,10 @@ async function importCsvFile(file){
  const groups=new Map(),errors=[];const importBatch="SIN-ID-"+new Date().toISOString()+"-"+state.counter;
  rows.forEach((r,i)=>{if(r.length!==originalHeaders.length){errors.push({row:i+2,reason:"Número de columnas distinto al encabezado",values:r});return;}const get=k=>cols[k]<0?"":String(r[cols[k]]??"").trim(),client=get("client"),sku=get("sku"),name=get("name"),qty=parseNumber(get("qty")),price=parseNumber(get("price")),unit=get("unit")||"ud.",source=get("order")||importBatch,sourceRef=get("order")||"Importación sin número";
  let reason="";
- if(!client)reason="Falta el cliente";else if(!sku)reason="Falta la referencia SKU";else if(!name)reason="Falta el nombre del producto";else if(!get("qty")||!Number.isFinite(qty))reason="Cantidad vacía o no numérica";else if(!Number.isInteger(qty)||qty<1||qty>state.rules.maxQuantity)reason="Cantidad fuera del límite configurado (1–"+state.rules.maxQuantity.toLocaleString("es-ES")+")";else if(!get("price")||!Number.isFinite(price))reason="Precio vacío o no numérico";else if(price<0||price>999999)reason="Precio fuera del límite (0–999.999)";
+ if(!client)reason="Falta el cliente";else if(!sku)reason="Falta la referencia SKU";else if(!name)reason="Falta el nombre del producto";else if(!get("qty")||!Number.isFinite(qty))reason="Cantidad vacía o no numérica";else if(!Number.isInteger(qty)||qty<1||qty>rulesForClient(client).maxQuantity)reason="Cantidad fuera del límite configurado para "+client+" (1–"+rulesForClient(client).maxQuantity.toLocaleString("es-ES")+")";else if(!get("price")||!Number.isFinite(price))reason="Precio vacío o no numérico";else if(price<0||price>999999)reason="Precio fuera del límite (0–999.999)";
  if(reason){errors.push({row:i+2,reason,values:r});return;}
  const key=source+"|"+client;if(!groups.has(key))groups.set(key,{sourceId:key,sourceRef,client,lines:[]});
- const catalogProduct=state.catalog.find(p=>p.sku.toLocaleLowerCase("es")===sku.toLocaleLowerCase("es"));const roundedPrice=Math.round(price*100)/100;const duplicateSku=groups.get(key).lines.some(line=>line.sku.toLocaleLowerCase("es")===sku.toLocaleLowerCase("es"));if(duplicateSku&&state.rules.duplicateSku==="block"){errors.push({row:i+2,reason:"Referencia repetida en el pedido · bloqueada por regla",values:r});return;}if(!catalogProduct&&state.rules.unknownSku==="block"){errors.push({row:i+2,reason:"SKU no encontrado en catálogo · bloqueado por regla",values:r});return;}const issue=duplicateSku?"Referencia repetida en el pedido: confirma si son líneas distintas":!catalogProduct?"Referencia no encontrada en el catálogo: valida el SKU":priceDiffers(catalogProduct.price,roundedPrice)?"Precio distinto al catálogo (referencia: "+money(catalogProduct.price)+")":"Importada: confirma cantidad y producto";groups.get(key).lines.push({name:name.slice(0,160),sku:sku.slice(0,80),qty,unit:unit.slice(0,30),price:roundedPrice,issue,checked:false});
+ const clientRules=rulesForClient(client),catalogProduct=state.catalog.find(p=>p.sku.toLocaleLowerCase("es")===sku.toLocaleLowerCase("es"));const roundedPrice=Math.round(price*100)/100;const duplicateSku=groups.get(key).lines.some(line=>line.sku.toLocaleLowerCase("es")===sku.toLocaleLowerCase("es"));if(duplicateSku&&clientRules.duplicateSku==="block"){errors.push({row:i+2,reason:"Referencia repetida en el pedido · bloqueada por regla del cliente",values:r});return;}if(!catalogProduct&&clientRules.unknownSku==="block"){errors.push({row:i+2,reason:"SKU no encontrado en catálogo · bloqueado por regla del cliente",values:r});return;}const issue=duplicateSku?"Referencia repetida en el pedido: confirma si son líneas distintas":!catalogProduct?"Referencia no encontrada en el catálogo: valida el SKU":priceDiffers(catalogProduct.price,roundedPrice,clientRules)?"Precio distinto al catálogo (referencia: "+money(catalogProduct.price)+")":"Importada: confirma cantidad y producto";groups.get(key).lines.push({name:name.slice(0,160),sku:sku.slice(0,80),qty,unit:unit.slice(0,30),price:roundedPrice,issue,checked:false});
  });
  if(errors.length)downloadImportErrors("pedidoclaro-errores-pedidos.csv",originalHeaders,errors);
  const importableGroups=[...groups.values()].filter(g=>g.lines.length);
@@ -377,7 +378,7 @@ async function importCsvFile(file){
  notify("Importados "+added+" pedido(s). Líneas rechazadas: "+errors.length+". Duplicados omitidos: "+skipped+"."+(errors.length?" Se descargó un CSV con los errores.":""));
 }
 function backupData(){
- const payload={app:"PedidoClaro",version:2,exportedAt:new Date().toISOString(),counter:state.counter,orders:state.orders,activity:state.activity,catalog:state.catalog,rules:state.rules};
+ const payload={app:"PedidoClaro",version:2,exportedAt:new Date().toISOString(),counter:state.counter,orders:state.orders,activity:state.activity,catalog:state.catalog,rules:state.rules,customerRules:state.customerRules};
  downloadFile("pedidoclaro-copia-"+new Date().toISOString().slice(0,10)+".json",JSON.stringify(payload,null,2),"application/json;charset=utf-8");
  log("Descargó una copia de seguridad local");notify("Copia JSON descargada.");
 }
@@ -402,8 +403,9 @@ async function restoreData(file){
  if(cleanCatalog.length>5000)throw new Error("La copia contiene demasiados productos.");
  const catalogSkus=new Set();
  for(const p of cleanCatalog){const key=p.sku.toLocaleLowerCase("es");if(catalogSkus.has(key))throw new Error("La copia contiene referencias SKU duplicadas: "+p.sku+".");catalogSkus.add(key);}
- if(!confirm("Esto sustituirá los pedidos y el historial guardados en este navegador. ¿Continuar?"))return;
- state.orders=cleanOrders;state.catalog=cleanCatalog;state.rules={...defaultRules,...(data.rules||{})};state.rules.maxQuantity=Math.min(999999,Math.max(1,Math.floor(Number(state.rules.maxQuantity)||999999)));state.rules.priceTolerancePct=Math.min(100,Math.max(0,Number(state.rules.priceTolerancePct)||0));if(!["review","block"].includes(state.rules.unknownSku))state.rules.unknownSku="review";if(!["review","block"].includes(state.rules.duplicateSku))state.rules.duplicateSku="review";state.orders.forEach(o=>{if(!["approved","rejected"].includes(o.status))o.status=derived(o);});state.activity=cleanActivity;state.counter=Math.max(Number(data.counter)||0,...cleanOrders.map(o=>Number(String(o.id).replace("PD-",""))||0));state.selected=state.orders[0]?.id||null;persist();render();notify("Copia restaurada correctamente.");
+ const cleanCustomerRules={};if(data.customerRules&&typeof data.customerRules==="object"&&!Array.isArray(data.customerRules)){const entries=Object.entries(data.customerRules);if(entries.length>1000)throw new Error("La copia contiene demasiadas reglas de clientes.");for(const [name,rules] of entries){const key=clientKey(name);if(!key||!rules||typeof rules!=="object"||Array.isArray(rules))throw new Error("Regla de cliente inválida en la copia.");cleanCustomerRules[key]=cleanRuleSet(rules);}}
+ if(!confirm("Esto sustituirá los pedidos, reglas de clientes y el historial guardados en este navegador. ¿Continuar?"))return;
+ state.orders=cleanOrders;state.catalog=cleanCatalog;state.rules=cleanRuleSet(data.rules||defaultRules);state.customerRules=cleanCustomerRules;state.orders.forEach(o=>{if(!["approved","rejected"].includes(o.status))o.status=derived(o);});state.activity=cleanActivity;state.counter=Math.max(Number(data.counter)||0,...cleanOrders.map(o=>Number(String(o.id).replace("PD-",""))||0));state.selected=state.orders[0]?.id||null;persist();render();notify("Copia restaurada correctamente.");
 }
 
 function renderReviewQueue(){
@@ -416,8 +418,9 @@ function renderReviewQueue(){
    const reasons=[];
    if(line.issue)reasons.push(line.issue);
    else reasons.push("Línea pendiente de confirmar");
-   if(!product)reasons.push("SKU no existe en el catálogo");
-   else if(priceDiffers(product.price,line.price))reasons.push("Precio distinto al de referencia");
+   const clientRules=rulesForClient(o.client);
+   if(!product&&clientRules.unknownSku==="review")reasons.push("SKU no existe en el catálogo");
+   else if(product&&priceDiffers(product.price,line.price,clientRules))reasons.push("Precio distinto al de referencia");
    if(reasons.length)findings.push({order:o,line,lineIndex,reasons});
   }
  }
