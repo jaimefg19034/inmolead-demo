@@ -425,6 +425,7 @@ function auditImportRows(rows,kind){
   }
   audit.groups=audit.valid;audit.importable=audit.valid;
  }
+ audit.issues=audit.rows.filter(item=>["warning","rejected","duplicate"].includes(item.status)).map(item=>({row:item.row,reason:item.reason||"Revisar fila",values:item.values}));
  return audit;
 }
 async function showImportPreview(file,kind){
@@ -449,7 +450,7 @@ async function showImportPreview(file,kind){
  const importCount=kind==="orders"?audit.importable:audit.valid;
  const outcome=kind==="orders"?audit.importable+" pedidos nuevos posibles · "+audit.groups+" grupos detectados":audit.added+" productos nuevos · "+audit.updated+" referencias a actualizar";
  $("import-preview-note").innerHTML='<b>'+(audit.rejected?"Hay filas que no se importarán automáticamente.":"El análisis previo no ha detectado filas rechazadas.")+'</b><span>'+esc(outcome)+'. '+(audit.warnings?"Revisa las advertencias antes de importar. ":"")+(audit.duplicates?"Los duplicados existentes se omitirán. ":"")+'La revisión y aprobación de los pedidos seguirá siendo manual.</span>';
- $("import-preview-errors").disabled=!audit.errors.length;
+ $("import-preview-errors").disabled=!audit.issues.length;
  $("import-preview-confirm").disabled=!importCount;
  $("import-preview-confirm").textContent=importCount?(kind==="orders"?"Importar "+importCount+" pedido(s)":"Aplicar "+importCount+" cambio(s)"):"No hay datos importables";
  pendingImport={file,kind,audit,headers:rows[0]};
@@ -579,7 +580,7 @@ $("catalog-template").onclick=()=>downloadFile("plantilla-catalogo-pedidoclaro.c
 $("catalog-file").onchange=async e=>{try{await showImportPreview(e.target.files[0],"catalog");}catch(err){notify(err.message||"No se pudo leer el CSV.");e.target.value="";}};
 
 $("import-preview-cancel").onclick=()=>{pendingImport=null;$("import-preview-dialog").close();$("csv-file").value="";$("catalog-file").value="";};
-$("import-preview-errors").onclick=()=>{if(!pendingImport?.audit?.errors?.length)return;downloadImportErrors(pendingImport.kind==="orders"?"pedidoclaro-errores-pedidos.csv":"pedidoclaro-errores-catalogo.csv",pendingImport.headers,pendingImport.audit.errors);notify("Informe de filas rechazadas descargado.");};
+$("import-preview-errors").onclick=()=>{if(!pendingImport?.audit?.issues?.length)return;const kind=pendingImport.kind;downloadImportErrors(kind==="orders"?"pedidoclaro-incidencias-pedidos.csv":"pedidoclaro-incidencias-catalogo.csv",pendingImport.headers,pendingImport.audit.issues);notify("Informe descargado: "+pendingImport.audit.issues.length+" filas con incidencias.");};
 $("import-preview-confirm").onclick=async()=>{
  if(!pendingImport)return;
  const task=pendingImport;pendingImport=null;$("import-preview-dialog").close();
