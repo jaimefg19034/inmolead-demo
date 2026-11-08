@@ -38,8 +38,8 @@ def main():
         if token not in js: raise SystemExit("Falta funcionalidad JS: "+token)
     if "CACHE_NAME" not in sw or "PedidoClaro" not in manifest.get("name",""): raise SystemExit("PWA incompleta")
     import re
-    page_app=re.search(r'<script\\s+src="(app\\.js\\?v=\\d+)"',source)
-    shell_app=re.search(r'"\\./(app\\.js\\?v=\\d+)"',sw)
+    page_app=re.search(r'<script\s+src="(app\.js\?v=\d+)"',source)
+    shell_app=re.search(r'"\./(app\.js\?v=\d+)"',sw)
     if not page_app or not shell_app or page_app.group(1)!=shell_app.group(1): raise SystemExit("La versión de app.js del service worker no coincide con index.html")
     restore_guard='if(!l||typeof l!=="object"||Array.isArray(l))throw new Error("Línea inválida en "'
     if restore_guard not in js: raise SystemExit("Falta la validación defensiva de líneas en copias JSON")
