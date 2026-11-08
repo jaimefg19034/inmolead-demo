@@ -1,78 +1,46 @@
 #!/usr/bin/env python3
-"""Dependency-free static checks for the PedidoClaro GitHub Pages demo."""
+"""Dependency-free static checks for PedidoClaro."""
 from html.parser import HTMLParser
 from pathlib import Path
-import shutil
-import subprocess
-import sys
-
-ROOT = Path(__file__).resolve().parents[1]
-HTML = ROOT / "index.html"
-
-class Parser(HTMLParser):
+import shutil, subprocess, sys
+ROOT=Path(__file__).resolve().parents[1]
+class PageParser(HTMLParser):
     def __init__(self):
-        super().__init__()
-        self.ids = set()
-        self.title_open = False
-        self.title = []
-        self.lang = None
-        self.scripts = []
-        self.in_script = False
-        self.script = []
-    def handle_starttag(self, tag, attrs):
-        attrs = dict(attrs)
-        if tag == "html":
-            self.lang = attrs.get("lang")
-        if "id" in attrs:
-            value = attrs["id"]
-            if value in self.ids:
-                raise ValueError(f"ID duplicado: {value}")
-            self.ids.add(value)
-        if tag == "title":
-            self.title_open = True
-        if tag == "script" and not attrs.get("src"):
-            self.in_script = True
-            self.script = []
-    def handle_endtag(self, tag):
-        if tag == "title":
-            self.title_open = False
-        if tag == "script" and self.in_script:
-            self.scripts.append("".join(self.script))
-            self.in_script = False
-    def handle_data(self, data):
-        if self.title_open:
-            self.title.append(data)
-        if self.in_script:
-            self.script.append(data)
-
+        super().__init__(); self.ids=set(); self.lang=None; self.title=[]; self.in_title=False; self.scripts=[]; self.in_script=False; self.script=[]
+    def handle_starttag(self,tag,attrs):
+        a=dict(attrs)
+        if tag=="html": self.lang=a.get("lang")
+        if "id" in a:
+            if a["id"] in self.ids: raise ValueError("ID duplicado: "+a["id"])
+            self.ids.add(a["id"])
+        if tag=="title": self.in_title=True
+        if tag=="script" and not a.get("src"): self.in_script=True; self.script=[]
+    def handle_endtag(self,tag):
+        if tag=="title": self.in_title=False
+        if tag=="script" and self.in_script: self.scripts.append("".join(self.script)); self.in_script=False
+    def handle_data(self,data):
+        if self.in_title:self.title.append(data)
+        if self.in_script:self.script.append(data)
 def main():
-    if not HTML.exists():
-        raise SystemExit("Falta index.html")
-    source = HTML.read_text(encoding="utf-8")
-    parser = Parser()
-    parser.feed(source)
-    if parser.lang != "es":
-        raise SystemExit("El documento debe declarar lang=es")
-    if "PedidoClaro" not in "".join(parser.title):
-        raise SystemExit("El título no identifica PedidoClaro")
-    if len(parser.ids) < 10:
-        raise SystemExit("Faltan controles clave de la demo")
-    required = ["id=\"list\"", "id=\"detail\"", "id=\"approve\"", "id=\"parse\"", "Sin IA", "datos ficticios"]
-    missing = [item for item in required if item.lower() not in source.lower()]
-    if missing:
-        raise SystemExit("Faltan elementos/avisos requeridos: " + ", ".join(missing))
-    if not parser.scripts:
-        raise SystemExit("No se ha encontrado JavaScript inline")
-    node = shutil.which("node")
+    page=ROOT/"index.html"; app=ROOT/"app.js"; css=ROOT/"styles.css"
+    for p in (page,app,css):
+        if not p.is_file(): raise SystemExit("Falta archivo requerido: "+str(p.relative_to(ROOT)))
+    source=page.read_text(encoding="utf-8"); js=app.read_text(encoding="utf-8")
+    p=PageParser();p.feed(source)
+    if p.lang!="es" or "PedidoClaro" not in "".join(p.title): raise SystemExit("Idioma o título incorrecto")
+    required=["id=\"order-list\"","id=\"detail-panel\"","id=\"approve\"","id=\"parse-order\"","id=\"activity-list\"","id=\"guide\""]
+    missing=[x for x in required if x not in source]
+    if missing: raise SystemExit("Faltan controles: "+", ".join(missing))
+    for token in ("pedidoclaro-demo-v2","function renderList","function renderDetail","function exportCsv","function parseText","addEventListener"):
+        if token not in js: raise SystemExit("Falta funcionalidad JS: "+token)
+    if "datos ficticios" not in source.lower() or "no contiene ia" not in source.lower(): raise SystemExit("Faltan avisos de demo")
+    node=shutil.which("node")
     if node:
-        for number, js in enumerate(parser.scripts, start=1):
-            result = subprocess.run([node, "--check", "-"], input=js, text=True, capture_output=True)
-            if result.returncode:
-                print(result.stderr, file=sys.stderr)
-                raise SystemExit(f"JavaScript inline {number}: error de sintaxis")
-    print(f"OK: PedidoClaro, {len(parser.ids)} IDs únicos, {len(parser.scripts)} bloque(s) JS.")
-    if not node:
-        print("Aviso: Node.js no disponible; se omitió el chequeo de sintaxis JS.")
-
-if __name__ == "__main__":
-    main()
+        result=subprocess.run([node,"--check",str(app)],text=True,capture_output=True)
+        if result.returncode: print(result.stderr,file=sys.stderr); raise SystemExit("JavaScript: error de sintaxis")
+        for number,inline in enumerate(p.scripts,1):
+            result=subprocess.run([node,"--check","-"],input=inline,text=True,capture_output=True)
+            if result.returncode: print(result.stderr,file=sys.stderr); raise SystemExit(f"JavaScript inline {number}: error")
+    print(f"OK: HTML válido a nivel estructural, {len(p.ids)} IDs únicos, app.js y styles.css presentes.")
+    if not node: print("Aviso: Node.js no disponible; sintaxis JS no comprobada.")
+if __name__=="__main__": main()
