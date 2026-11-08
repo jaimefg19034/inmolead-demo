@@ -68,10 +68,16 @@ def main():
         for name in ["app.js","sw.js"]:
             result=subprocess.run([node,"--check",str(ROOT/name)],text=True,capture_output=True)
             if result.returncode: print(result.stderr,file=sys.stderr); raise SystemExit(name+": error de sintaxis")
+        xml_start=js.index("function xmlEsc(value){")
+        xml_end=js.index("\nfunction excelCol",xml_start)
+        xml_helper=js[xml_start:xml_end]
+        safe_start=js.index("function safeCell(v){")
+        safe_end=js.index("\nfunction downloadImportErrors",safe_start)
+        safe_helper=js[safe_start:safe_end]
         parser_start=js.index("function csvParse(text){")
         parser_end=js.index("\nfunction normHeader",parser_start)
         parser=js[parser_start:parser_end]
-        tests=parser+r"""
+        tests=parser+"\n"+xml_helper+"\n"+safe_helper+r"""
 const assert=require("node:assert/strict");
 assert.deepEqual(csvParse('sku;name\r\n1;"Cafe; molido"'),[['sku','name'],['1','Cafe; molido']]);
 assert.deepEqual(csvParse('sku,name\n1,"Cafe '+String.fromCharCode(34)+String.fromCharCode(34)+'premium'+String.fromCharCode(34)+String.fromCharCode(34)+'"'),[['sku','name'],['1','Cafe "premium"']]);
@@ -80,7 +86,11 @@ assert.deepEqual(csvParse('a;b\n1;'),[['a','b'],['1','']]);
 assert.throws(()=>csvParse('a;b\n1;"ab'),/comillas sin cerrar/);
 assert.throws(()=>csvParse('a;b\n1;ab"cd'),/comilla dentro/);
 assert.throws(()=>csvParse('a;b\n1;"ab"x'),/caracteres después/);
-console.log('CSV parser tests OK');
+assert.equal(xmlEsc('A\\u0000B\\u0001C\\tD\\nE & <F>'), 'ABC\\tD\\nE &amp; &lt;F&gt;');
+assert.equal(xmlEsc('😀'), '😀');
+assert.equal(safeCell('  =HYPERLINK("https://example.com")'), '"\'  =HYPERLINK(""https://example.com"")"');
+assert.equal(safeCell('normal "text"'), '"normal ""text"""');
+console.log('CSV, XML and spreadsheet safety tests OK');
 """
         result=subprocess.run([node,"-e",tests],text=True,capture_output=True)
         if result.returncode: print(result.stderr,file=sys.stderr); raise SystemExit("Pruebas del parser CSV fallidas")
