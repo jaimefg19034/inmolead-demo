@@ -7,6 +7,7 @@
 PedidoClaro explora cómo preparar, revisar y exportar pedidos antes de introducirlos en un ERP.
 
 ## Funciones disponibles en la demo
+- **Bandeja v25:** ordenación por prioridad/incidencias, importe ascendente o descendente y cliente A–Z. Exportación CSV o Excel de los resultados visibles respetando la búsqueda y el filtro, además de la exportación completa.
 - **Centro de importación v24:** auditoría previa de cada fila antes de guardar, resumen de válidas, advertencias, rechazadas y duplicadas; reconocimiento de columnas; detalle de incidencias; descarga anticipada del informe de errores y bloqueo del botón de importación cuando no hay registros válidos o nuevos. La aplicación vuelve a validar al confirmar.
 - **Interfaz v24:** renovación del diálogo de importación con flujo por pasos, tarjetas de calidad de datos, tabla de revisión y diseño adaptable; mejora adicional de navegación, formularios, botones y superficies.
 - Rediseño visual v18: panel principal destacado, navegación refinada, tarjetas KPI y gráficos CSS dinámicos (anillo de estados y barras comparativas). Las gráficas representan únicamente los datos locales existentes; no se generan tendencias ni cifras ficticias.
