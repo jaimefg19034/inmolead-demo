@@ -7,6 +7,7 @@
 PedidoClaro explora cómo preparar, revisar y exportar pedidos antes de introducirlos en un ERP.
 
 ## Funciones disponibles en la demo
+- Rediseño visual v18: panel principal destacado, navegación refinada, tarjetas KPI y gráficos CSS dinámicos (anillo de estados y barras comparativas). Las gráficas representan únicamente los datos locales existentes; no se generan tendencias ni cifras ficticias.
 - Interfaz visual refinada para Clientes y Analítica, con tarjetas KPI, resumen de clientes destacados, barras de progreso y distribución visual de estados. Diseño adaptable a móvil.
 - Bandeja de pedidos con búsqueda y filtros.
 - **Clientes:** resumen automático por cliente con pedidos, pendientes, incidencias, valor total y valor aprobado. No requiere crear fichas ni servicios externos.
