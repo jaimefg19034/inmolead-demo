@@ -1,41 +1,44 @@
-# Plan de validación — InmoLead
+# Plan de validación comercial
+
+**Fecha:** 8 de noviembre de 2026. Hipótesis aún no validada.
 
 ## Hipótesis
+En algunas agencias pequeñas, las consultas se quedan sin respuesta o sin una próxima acción clara. Una capa que detecte pendientes y ayude a preparar el seguimiento podría mejorar la continuidad operativa.
 
-Las pequeñas inmobiliarias pierden oportunidades cuando las consultas entrantes no reciben una respuesta o seguimiento a tiempo. Estarían dispuestas a pagar por una herramienta sencilla que les ayude a priorizar contactos, preparar respuestas y organizar visitas.
+## Segmento inicial
+Agencias independientes de 2–15 agentes en Madrid. No asumir que todas utilizan los mismos canales o CRM.
 
-## Cliente inicial
+## Objetivo
+Entrevistar a 10 agencias antes de desarrollar integraciones o contratar servicios.
 
-Agencias independientes de 2 a 15 agentes en Madrid. No asumir que todas usan WhatsApp de la misma manera: preguntarlo en las entrevistas.
+## Preguntas
+1. ¿Qué ocurre desde que entra una consulta hasta que alguien la atiende?
+2. ¿Por qué canales llegan los leads?
+3. ¿Qué herramientas utilizáis para registrarlos y asignarlos?
+4. ¿Cómo sabéis quién debe hacer el siguiente seguimiento?
+5. Cuéntame la última vez que un contacto se quedó sin seguimiento. ¿Qué ocurrió?
+6. ¿Con qué frecuencia pasa?
+7. ¿Cómo lo resolvéis hoy y qué parte no funciona?
+8. ¿Cuánto tiempo dedicáis a revisar contactos pendientes?
+9. ¿Qué ocurre cuando un agente no está disponible?
+10. ¿Qué tendría que mejorar para cambiar vuestro proceso?
+11. ¿Quién decidiría probar una herramienta nueva?
+12. ¿Habéis pagado por resolver este problema de otra manera?
 
-## Entrevistas (objetivo: 10)
+No pedir datos personales de compradores, credenciales ni acceso a cuentas. Mostrar la demo solo al final.
 
-Preguntar:
-1. ¿Por qué canales os entran las consultas?
-2. ¿Cuántas consultas recibís aproximadamente por semana?
-3. ¿Cómo registráis cada interesado actualmente?
-4. ¿Cómo detectáis los contactos que llevan días sin respuesta?
-5. ¿Cuántas visitas se pierden por falta de seguimiento, si podéis estimarlo?
-6. ¿Qué CRM, calendario y herramientas utilizáis?
-7. ¿Qué parte del proceso os consume más tiempo?
-8. ¿Podríais enseñarnos un ejemplo anonimizado del proceso actual?
-9. ¿Qué tendría que hacer una herramienta para que la probarais?
-10. ¿Pagaríais por resolver este problema? ¿Qué presupuesto tendría sentido?
+## Datos a registrar
+Canales, CRM, tamaño del equipo, volumen aproximado por rangos, proceso actual, ejemplos recientes, frecuencia, soluciones existentes, persona decisora, objeciones y compromiso concreto de prueba.
 
-No pedir datos personales reales ni acceso a cuentas durante la entrevista.
+## Criterios provisionales
+- 4/10 agencias describen espontáneamente un problema reciente y recurrente.
+- 3/10 explican una carencia de su proceso o CRM actual.
+- 2 aceptan una segunda sesión para diseñar un piloto.
+- Al menos 1 está dispuesta a discutir un presupuesto después del piloto.
 
-## Prueba piloto
+Si no se cumplen, revisar segmento o abandonar la hipótesis. No añadir funciones solo por intuición.
 
-- 2 agencias colaboradoras.
-- 2 semanas de uso asistido.
-- Usar contactos ficticios o datos anonimizados hasta disponer de acuerdos, base jurídica y medidas de protección adecuadas.
-- Medir: tiempo hasta primer seguimiento, contactos recuperados, visitas concertadas, tareas completadas y minutos ahorrados.
-- Registrar incidencias y falsos positivos.
+## Piloto
+1–2 agencias, 1–3 agentes, dos semanas. Medir línea base y cambios en tiempo de primera respuesta, porcentaje de leads con siguiente acción, seguimientos vencidos resueltos, visitas concertadas, minutos ahorrados, falsas alarmas y tareas descartadas.
 
-## Criterios para seguir
-
-Continuar si al menos 3 de 10 agencias describen el problema como frecuente, 2 aceptan probar el flujo y al menos 1 muestra disposición concreta a pagar tras el piloto.
-
-## No construir todavía
-
-No integrar WhatsApp API, CRM, pagos o automatización autónoma hasta confirmar el flujo de trabajo y el interés real. La demo actual no envía mensajes.
+Usar datos sintéticos o agregados. La demo pública no está preparada para datos reales. Para un piloto con datos personales, definir antes roles, base jurídica, información, contrato, controles de acceso, seguridad, conservación, borrado e incidentes con asesoramiento cualificado.
