@@ -819,3 +819,26 @@ body{background:radial-gradient(ellipse at 80% -10%,#eaf0ff 0,transparent 36%),#
 .review-queue-empty b{font-size:11px;color:#264b3b}
 .review-queue-empty p{font-size:10px;color:#718477;margin:4px 0 0}
 @media(max-width:760px){.review-queue-row{grid-template-columns:26px minmax(0,1fr) auto;gap:8px}.review-queue-value{display:none}.review-queue-row .btn{grid-column:2/4;justify-self:start}.review-queue-main>div{display:block}.review-queue-main small{display:block;margin-top:3px}}
+
+/* v28 · Clear select-all control and configurable validation rules */
+.select-visible-label{display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid #e0e7f0;border-radius:9px;background:#f8fafc;color:#52647b;font-size:11px;font-weight:700;cursor:pointer}
+.select-visible-label input{appearance:none;-webkit-appearance:none;display:grid;place-content:center;width:16px;height:16px;flex:0 0 16px;margin:0;border:1.5px solid #aab8c9;border-radius:4px;background:#fff;cursor:pointer}
+.select-visible-label input::before{content:"";width:8px;height:8px;transform:scale(0);transition:transform .12s ease;background:#fff;clip-path:polygon(14% 44%,0 65%,42% 100%,100% 18%,82% 0,38% 64%)}
+.select-visible-label input:checked{background:#245da8;border-color:#245da8}
+.select-visible-label input:checked::before{transform:scale(1)}
+.select-visible-label input:indeterminate{background:#245da8;border-color:#245da8}
+.select-visible-label input:indeterminate::before{width:8px;height:2px;clip-path:none;transform:scale(1);border-radius:2px}
+.select-visible-label input:focus-visible{outline:3px solid #b8d2f2;outline-offset:2px}
+.rules-open-btn{white-space:nowrap}
+.rules-form{padding:24px;min-width:min(560px,calc(100vw - 36px))}
+.rules-dialog-head h2{margin:5px 0 7px;font-size:22px;color:#20354f}
+.rules-dialog-head p{margin:0 0 18px;font-size:12px;line-height:1.5}
+.rules-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.rules-grid label{display:flex;flex-direction:column;gap:6px;font-size:11px;font-weight:750;color:#40536b}
+.rules-grid .field{width:100%;min-width:0}
+.rules-grid small{font-size:10px;font-weight:400;color:#7a8798;line-height:1.4}
+.rules-note{margin-top:17px;padding:11px 12px;border-radius:9px;background:#f3f6fa;color:#69788b;font-size:10px;line-height:1.5}
+#rules-dialog{width:min(600px,calc(100vw - 24px));max-width:600px;border:1px solid #dce4ee;border-radius:17px;padding:0;box-shadow:0 24px 80px rgba(15,35,65,.22)}
+#rules-dialog::backdrop{background:rgba(17,30,49,.48);backdrop-filter:blur(3px)}
+#rules-dialog .modal-actions{margin-top:19px}
+@media(max-width:600px){.rules-form{padding:18px;min-width:0}.rules-grid{grid-template-columns:1fr}.filters .rules-open-btn{flex:0 0 auto}.select-visible-label{padding:7px 8px}}
