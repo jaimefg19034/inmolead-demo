@@ -34,7 +34,7 @@ def main():
     required_ids=['id="order-list"','id="detail-panel"','id="parse-order"','id="activity-list"','id="view-guide"','id="import-csv"','id="backup-data"','id="restore-data"','id="export-all-xlsx"','id="catalog-export-xlsx"']
     missing=[x for x in required_ids if x not in source]
     if missing: raise SystemExit("Faltan controles: "+", ".join(missing))
-    for token in ("pedidoclaro-demo-v2","function renderList","function renderDetail","function exportCsv", "function zipStore", "function downloadXlsx", "function exportOrdersXlsx", "function exportCatalogXlsx","function parseText","function importCsvFile","function backupData","function restoreData","serviceWorker.register"):
+    for token in ("pedidoclaro-demo-v2","function renderList","function renderDetail","function exportCsv", "function zipStore", "function downloadXlsx", "function exportOrdersXlsx", "function exportCatalogXlsx", "function downloadImportErrors","function parseText","function importCsvFile", "pedidoclaro-errores-pedidos.csv", "pedidoclaro-errores-catalogo.csv","function backupData","function restoreData","serviceWorker.register"):
         if token not in js: raise SystemExit("Falta funcionalidad JS: "+token)
     if "CACHE_NAME" not in sw or "PedidoClaro" not in manifest.get("name",""): raise SystemExit("PWA incompleta")
     for token in ('id="view-catalog"', 'id="catalog-import"', 'id="catalog-export"', 'id="product-dialog"'):
@@ -50,6 +50,6 @@ def main():
         for number,inline in enumerate(p.scripts,1):
             result=subprocess.run([node,"--check","-"],input=inline,text=True,capture_output=True)
             if result.returncode: print(result.stderr,file=sys.stderr); raise SystemExit(f"JavaScript inline {number}: error")
-    print(f"OK: {len(p.ids)} IDs únicos, manifest válido, PWA offline, importación CSV, copias JSON y JavaScript.")
+    print(f"OK: {len(p.ids)} IDs únicos, manifest válido, PWA offline, importación CSV con informes de errores, exportación XLSX, copias JSON y JavaScript.")
     if not node: print("Aviso: Node.js no disponible; sintaxis JS no comprobada.")
 if __name__=="__main__": main()
