@@ -851,3 +851,8 @@ body{background:radial-gradient(ellipse at 80% -10%,#eaf0ff 0,transparent 36%),#
 #detail-panel{scroll-margin-top:24px}
 .detail-head h2:focus{outline:2px solid #8fb4e8;outline-offset:5px;border-radius:3px}
 @media(max-width:680px){.review-queue-head{align-items:flex-start;flex-direction:column}.review-queue-tools{width:100%;justify-content:space-between}.review-queue-tools .btn{flex:1}}
+
+
+/* v30 · Explicit confirmation feedback */
+.line-flag.ok{background:#eaf7ef;color:#24734d;border:1px solid #d1ebdc}
+.line-actions{flex-wrap:wrap}
