@@ -58,7 +58,7 @@ def main():
         raise SystemExit("La importación CSV modifica el estado antes de preparar todos los pedidos")
     for token in ('id="view-catalog"', 'id="catalog-import"', 'id="catalog-export"', 'id="product-dialog"'):
         if token not in source: raise SystemExit("Falta catálogo: "+token)
-    for token in ("catalogSeed", "function renderCatalog", "function catalogCsvExport", "function catalogCsvImport", "catalog-file", "catalogProduct", "Precio distinto al catálogo", "data-catalog-apply", "data-product-edit", "editingCatalogSku", "duplicateSku", "Referencia repetida en el pedido", "product?.price??r.price", "const importBatch=", 'sourceRef=get("order")||"Importación sin número"', "sourceId:key", "JSON.stringify([source,client])", "v>999999", "const orderIds=new Set(),sourceIds=new Set()", "catalogSkus=new Set()", "referencias SKU duplicadas"):
+    for token in ("catalogSeed", "function renderCatalog", "function catalogCsvExport", "function catalogCsvImport", "const nextCatalog=state.catalog.map(p=>({...p}))", "state.catalog=nextCatalog", "catalog-file", "catalogProduct", "Precio distinto al catálogo", "data-catalog-apply", "data-product-edit", "editingCatalogSku", "duplicateSku", "Referencia repetida en el pedido", "product?.price??r.price", "const importBatch=", 'sourceRef=get("order")||"Importación sin número"', "sourceId:key", "JSON.stringify([source,client])", "v>999999", "const orderIds=new Set(),sourceIds=new Set()", "catalogSkus=new Set()", "referencias SKU duplicadas"):
         if token not in js: raise SystemExit("Falta funcionalidad catálogo: "+token)
     for token in ('data-view="clients"','data-view="analytics"'):
         if token not in source: raise SystemExit("Falta navegación: "+token)

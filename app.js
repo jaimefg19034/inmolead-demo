@@ -223,7 +223,7 @@ async function catalogCsvImport(file){
  validateCsvHeaders(originalHeaders);
  const cols={sku:idx("referencia","sku","codigo","codigo_producto"),name:idx("producto","product","descripcion","nombre"),unit:idx("unidad","unit","ud"),price:idx("precio_unitario","precio","price","unit_price")};
  const missing=["sku","name","price"].filter(k=>cols[k]<0);if(missing.length)throw new Error("Faltan columnas: "+missing.join(", ")+".");
- let added=0,updated=0;const errors=[],seenSkus=new Set();
+ let added=0,updated=0;const errors=[],seenSkus=new Set(),nextCatalog=state.catalog.map(p=>({...p})),catalogBySku=new Map(nextCatalog.map((p,i)=>[p.sku.toLocaleLowerCase("es"),i]));
  for(let i=0;i<rows.length;i++){
   const row=rows[i],get=k=>cols[k]<0?"":String(row[cols[k]]??"").trim();
   if(row.length!==originalHeaders.length){errors.push({row:i+2,reason:"Número de columnas distinto al encabezado",values:row});continue;}
@@ -232,13 +232,15 @@ async function catalogCsvImport(file){
   if(!sku)reason="Falta la referencia SKU";else if(!name)reason="Falta el nombre del producto";else if(!get("price")||!Number.isFinite(price))reason="Precio vacío o no numérico";else if(price<0||price>999999)reason="Precio fuera del límite permitido (0–999.999)";
   if(reason){errors.push({row:i+2,reason,values:row});continue;}
   const normalizedSku=sku.toLocaleLowerCase("es");if(seenSkus.has(normalizedSku)){errors.push({row:i+2,reason:"SKU duplicado dentro del mismo CSV",values:row});continue;}seenSkus.add(normalizedSku);
-  const found=state.catalog.find(p=>p.sku.toLocaleLowerCase("es")===sku.toLocaleLowerCase("es"));
-  if(found){found.name=name;found.unit=unit;found.price=Math.round(price*100)/100;updated++;}
-  else{state.catalog.push({sku,name,unit,price:Math.round(price*100)/100});added++;}
+  const foundIndex=catalogBySku.get(normalizedSku);
+  if(foundIndex!==undefined){nextCatalog[foundIndex]={...nextCatalog[foundIndex],name,unit,price:Math.round(price*100)/100};updated++;}
+  else{catalogBySku.set(normalizedSku,nextCatalog.length);nextCatalog.push({sku,name,unit,price:Math.round(price*100)/100});added++;}
  }
  if(errors.length)downloadImportErrors("pedidoclaro-errores-catalogo.csv",originalHeaders,errors);
  if(!added&&!updated)throw new Error("No se encontraron productos válidos. Se ha descargado un CSV con las filas rechazadas.");
- state.catalog.sort((a,b)=>a.sku.localeCompare(b.sku,"es"));persist();log("Importó catálogo: "+added+" nuevos y "+updated+" actualizados");renderCatalog();
+ // Preparar el catálogo completo en memoria; sustituir el estado solo al terminar.
+ nextCatalog.sort((a,b)=>a.sku.localeCompare(b.sku,"es"));
+ state.catalog=nextCatalog;persist();log("Importó catálogo: "+added+" nuevos y "+updated+" actualizados");renderCatalog();
  notify("Catálogo actualizado: "+added+" nuevos, "+updated+" actualizados y "+errors.length+" omitidos."+(errors.length?" Se descargó un CSV con los errores.":""));
 }
 
@@ -351,7 +353,7 @@ function csvParse(text){
  for(let i=0;i<text.length;i++){const c=text[i];if(quoted){if(c==='"'&&text[i+1]==='"'){cell+='"';i++;}else if(c==='"')quoted=false;else cell+=c;}else if(c==='"')quoted=true;else if(c===delimiter){row.push(cell);cell="";}else if(c==="\n"){row.push(cell.replace(/\r$/,""));if(row.some(x=>x.trim()))rows.push(row);row=[];cell="";}else cell+=c;}
  row.push(cell.replace(/\r$/,""));if(row.some(x=>x.trim()))rows.push(row);if(quoted)throw new Error("El CSV contiene comillas sin cerrar.");return rows;
 }
-function normHeader(s){return String(s||"").trim().toLocaleLowerCase("es").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[\s-]+/g,"_");}
+function normHeader(s){return String(s||"").replace(/^\uFEFF/,"").trim().toLocaleLowerCase("es").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[\s-]+/g,"_");}
 let pendingImport=null;
 function catalogMismatchWarnings(product,name,unit,hasUnit){
  const key=value=>searchKey(value).replace(/\s+/g," ").trim();
