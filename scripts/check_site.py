@@ -69,9 +69,9 @@ def main():
             result=subprocess.run([node,"--check",str(ROOT/name)],text=True,capture_output=True)
             if result.returncode: print(result.stderr,file=sys.stderr); raise SystemExit(name+": error de sintaxis")
         parser_start=js.index("function csvParse(text){")
-        parser_end=js.index("\\nfunction normHeader",parser_start)
+        parser_end=js.index("\nfunction normHeader",parser_start)
         parser=js[parser_start:parser_end]
-        tests=parser+"""
+        tests=parser+r"""
 const assert=require("node:assert/strict");
 assert.deepEqual(csvParse('sku;name\\r\\n1;"Cafe; molido"'),[['sku','name'],['1','Cafe; molido']]);
 assert.deepEqual(csvParse('sku,name\\n1,"Cafe ""premium"""'),[['sku','name'],['1','Cafe "premium"']]);
