@@ -353,6 +353,13 @@ function csvParse(text){
 }
 function normHeader(s){return String(s||"").trim().toLocaleLowerCase("es").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[\s-]+/g,"_");}
 let pendingImport=null;
+function catalogMismatchWarnings(product,name,unit,hasUnit){
+ const key=value=>searchKey(value).replace(/\s+/g," ").trim();
+ const warnings=[];
+ if(key(name)!==key(product.name))warnings.push("Nombre distinto al catálogo (catálogo: "+product.name+")");
+ if(hasUnit&&unit&&key(unit)!==key(product.unit))warnings.push("Unidad distinta al catálogo (catálogo: "+product.unit+")");
+ return warnings;
+}
 function auditImportRows(rows,kind){
  const originalHeaders=rows[0],headers=originalHeaders.map(normHeader),idx=(...names)=>headers.findIndex(h=>names.includes(h));
  validateCsvHeaders(originalHeaders);
@@ -378,7 +385,11 @@ function auditImportRows(rows,kind){
      if(skuSets.get(key).has(sk)){item.status=clientRules.duplicateSku==="block"?"rejected":"warning";item.reason="Referencia repetida dentro del mismo pedido"+(clientRules.duplicateSku==="block"?" · bloqueada por regla":"");}else skuSets.get(key).add(sk);
      const product=state.catalog.find(p=>p.sku.toLocaleLowerCase("es")===sk);
      if(!product){if(clientRules.unknownSku==="block")item.status="rejected";else if(item.status==="ok")item.status="warning";item.reason+=(item.reason?"; ":"")+"SKU no encontrado en catálogo"+(clientRules.unknownSku==="block"?" · bloqueado por regla":"");}
-     else if(priceDiffers(product.price,Math.round(price*100)/100,clientRules)){if(item.status==="ok")item.status="warning";item.reason+=(item.reason?"; ":"")+"Precio distinto al catálogo (tolerancia "+clientRules.priceTolerancePct+"%)";}
+     else {
+      if(priceDiffers(product.price,Math.round(price*100)/100,clientRules)){if(item.status==="ok")item.status="warning";item.reason+=(item.reason?"; ":"")+"Precio distinto al catálogo (tolerancia "+clientRules.priceTolerancePct+"%)";}
+      const mismatches=catalogMismatchWarnings(product,name,get("unit"),cols.unit>=0);
+      if(mismatches.length){if(item.status==="ok")item.status="warning";item.reason+=(item.reason?"; ":"")+mismatches.join("; ");}
+     }
      if(get("order")&&state.orders.some(o=>o.sourceId===key)&&item.status!=="rejected"){item.status="duplicate";item.reason="Este pedido y cliente ya se importaron anteriormente";group.existing=true;}
      if(item.status!=="rejected"&&item.status!=="duplicate")group.importableLines++;
     }
@@ -469,7 +480,7 @@ async function importCsvFile(file){
  if(!client)reason="Falta el cliente";else if(!sku)reason="Falta la referencia SKU";else if(!name)reason="Falta el nombre del producto";else if(!get("qty")||!Number.isFinite(qty))reason="Cantidad vacía o no numérica";else if(!Number.isInteger(qty)||qty<1||qty>rulesForClient(client).maxQuantity)reason="Cantidad fuera del límite configurado para "+client+" (1–"+rulesForClient(client).maxQuantity.toLocaleString("es-ES")+")";else if(!get("price")||!Number.isFinite(price))reason="Precio vacío o no numérico";else if(price<0||price>999999)reason="Precio fuera del límite (0–999.999)";
  if(reason){errors.push({row:i+2,reason,values:r});return;}
  const key=source+"|"+client;if(!groups.has(key))groups.set(key,{sourceId:key,sourceRef,client,lines:[]});
- const clientRules=rulesForClient(client),catalogProduct=state.catalog.find(p=>p.sku.toLocaleLowerCase("es")===sku.toLocaleLowerCase("es"));const roundedPrice=Math.round(price*100)/100;const duplicateSku=groups.get(key).lines.some(line=>line.sku.toLocaleLowerCase("es")===sku.toLocaleLowerCase("es"));if(duplicateSku&&clientRules.duplicateSku==="block"){errors.push({row:i+2,reason:"Referencia repetida en el pedido · bloqueada por regla del cliente",values:r});return;}if(!catalogProduct&&clientRules.unknownSku==="block"){errors.push({row:i+2,reason:"SKU no encontrado en catálogo · bloqueado por regla del cliente",values:r});return;}const issue=duplicateSku?"Referencia repetida en el pedido: confirma si son líneas distintas":!catalogProduct?"Referencia no encontrada en el catálogo: valida el SKU":priceDiffers(catalogProduct.price,roundedPrice,clientRules)?"Precio distinto al catálogo (referencia: "+money(catalogProduct.price)+")":"Importada: confirma cantidad y producto";groups.get(key).lines.push({name:name.slice(0,160),sku:sku.slice(0,80),qty,unit:unit.slice(0,30),price:roundedPrice,issue,checked:false});
+ const clientRules=rulesForClient(client),catalogProduct=state.catalog.find(p=>p.sku.toLocaleLowerCase("es")===sku.toLocaleLowerCase("es"));const roundedPrice=Math.round(price*100)/100;const duplicateSku=groups.get(key).lines.some(line=>line.sku.toLocaleLowerCase("es")===sku.toLocaleLowerCase("es"));if(duplicateSku&&clientRules.duplicateSku==="block"){errors.push({row:i+2,reason:"Referencia repetida en el pedido · bloqueada por regla del cliente",values:r});return;}if(!catalogProduct&&clientRules.unknownSku==="block"){errors.push({row:i+2,reason:"SKU no encontrado en catálogo · bloqueado por regla del cliente",values:r});return;}const issueParts=[];if(duplicateSku)issueParts.push("Referencia repetida en el pedido: confirma si son líneas distintas");if(!catalogProduct)issueParts.push("Referencia no encontrada en el catálogo: valida el SKU");else{if(priceDiffers(catalogProduct.price,roundedPrice,clientRules))issueParts.push("Precio distinto al catálogo (referencia: "+money(catalogProduct.price)+")");issueParts.push(...catalogMismatchWarnings(catalogProduct,name,get("unit"),cols.unit>=0));}const issue=issueParts.join("; ")||"Importada: confirma cantidad y producto";groups.get(key).lines.push({name:name.slice(0,160),sku:sku.slice(0,80),qty,unit:unit.slice(0,30),price:roundedPrice,issue,checked:false});
  });
  if(errors.length)downloadImportErrors("pedidoclaro-errores-pedidos.csv",originalHeaders,errors);
  const importableGroups=[...groups.values()].filter(g=>g.lines.length);
