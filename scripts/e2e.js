@@ -70,7 +70,7 @@ const { spawn } = require("node:child_process");
     await page.locator("#save-product").click();
     page.once("dialog", dialog => dialog.accept());
     await page.locator("#backup-file").setInputFiles(backupPath);
-    await page.getByText("Copia restaurada correctamente.").waitFor();
+    await page.locator("#toast").filter({ hasText: "Copia restaurada correctamente." }).waitFor({ state: "visible" });
     await page.locator("#catalog-search").fill("E2E-POST");
     assert.equal(await page.locator("#catalog-list [data-product-edit]").count(), 0);
     await page.locator("#catalog-search").fill("E2E-CSV");
