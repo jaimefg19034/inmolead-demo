@@ -1751,3 +1751,51 @@ body,.app{background:#f3f5f8!important;color:#26364a!important}
 .view:not(#view-orders) .analytics-status-total span,.view:not(#view-orders) .analytics-status-legend>div,.view:not(#view-orders) .analytics-bar-label,.view:not(#view-orders) .analytics-bar-label small,.view:not(#view-orders) .rank-main small{color:#687b90!important}
 .view:not(#view-orders) .analytics-status-legend b,.view:not(#view-orders) .analytics-bar-label b,.view:not(#view-orders) .rank-main b{color:#344b64!important}
 @media(max-width:760px){.sidebar{background:#29384b!important}}
+
+
+/* v42 · Clientes: contraste claro y uniforme */
+#view-clients{background:#f6f8fb!important;color:#24364c!important}
+#view-clients .pagehead h1{color:#20344d!important}
+#view-clients .pagehead p{color:#60748b!important}
+#view-clients .client-kpi,
+#view-clients .client-highlight{
+ background:#fff!important;
+ border:1px solid #dfe6ee!important;
+ box-shadow:0 5px 16px rgba(28,48,72,.055)!important;
+ color:#263b53!important
+}
+#view-clients .client-kpi-icon,
+#view-clients .client-avatar,
+#view-clients .client-mini-avatar{
+ background:#edf3f8!important;border:1px solid #dce6ef!important;color:#456b91!important;
+ box-shadow:none!important
+}
+#view-clients .client-kpi small,
+#view-clients .client-highlight-main small,
+#view-clients .client-highlight-main span{color:#687b90!important}
+#view-clients .client-kpi strong,
+#view-clients .client-highlight-main b,
+#view-clients .client-highlight>strong{color:#203750!important}
+#view-clients .client-progress{background:#e8edf3!important}
+#view-clients .client-progress i{background:#668db5!important;box-shadow:none!important}
+#view-clients .panel{background:#fff!important;border:1px solid #dfe6ee!important;box-shadow:0 5px 16px rgba(28,48,72,.05)!important}
+#view-clients .panel-head{background:#fff!important;border-bottom:1px solid #e7edf3!important}
+#view-clients .panel-head h2{color:#263b53!important}
+#view-clients .panel-head p{color:#687b90!important}
+#view-clients .table-wrap{background:#fff!important;border:1px solid #e1e7ee!important;border-radius:10px!important}
+#view-clients .clients-table{background:#fff!important;color:#293e55!important}
+#view-clients .clients-table th{background:#f1f5f8!important;color:#536980!important;border-color:#dfe6ed!important}
+#view-clients .clients-table td{background:#fff!important;color:#34495f!important;border-color:#e7edf3!important}
+#view-clients .clients-table td small{color:#687d93!important}
+#view-clients .clients-table tr:hover td{background:#f5f8fb!important}
+#view-clients .clients-table td:first-child{color:#263d56!important;font-weight:700}
+#view-clients .clients-table td:last-child .btn,
+#view-clients .rules-open-btn{background:#edf3f8!important;border:1px solid #d8e3ed!important;color:#42698e!important}
+#view-clients .banner{background:#f0f4f8!important;border:1px solid #dce5ed!important;color:#536a82!important}
+#view-clients .banner b{color:#2d4965!important}
+@media(max-width:760px){
+ #view-clients .client-overview{grid-template-columns:1fr 1fr!important}
+ #view-clients .client-highlights{grid-template-columns:1fr!important}
+ #view-clients .table-wrap{overflow-x:auto!important}
+ #view-clients .clients-table{min-width:760px!important}
+}
