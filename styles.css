@@ -1822,3 +1822,40 @@ body,.app{background:#f3f5f8!important;color:#26364a!important}
 #view-analytics .analytics-chart-body small{
  text-shadow:none!important;
 }
+
+
+/* v44 · Iconos de Analítica: contraste reforzado */
+#view-analytics .analytics-stat-head i{
+ background:#244f7c!important;
+ color:#fff!important;
+ border:1px solid #173d65!important;
+ box-shadow:0 2px 5px rgba(23,61,101,.18)!important;
+ font-size:16px!important;
+ font-weight:800!important;
+ opacity:1!important;
+}
+#view-analytics .analytics-guide-icon{
+ background:#244f7c!important;
+ color:#fff!important;
+ border:1px solid #173d65!important;
+ box-shadow:0 2px 5px rgba(23,61,101,.16)!important;
+}
+#view-analytics .analytics-live-tag{
+ color:#344e6b!important;
+}
+#view-analytics .analytics-live-tag i{
+ background:#16845c!important;
+ border:1px solid #0d6847!important;
+ box-shadow:0 0 0 2px #d8eee5!important;
+}
+#view-analytics .analytics-stat-foot .warning-dot{
+ background:#bd7414!important;
+ box-shadow:0 0 0 2px #f8ead5!important;
+}
+#view-analytics .analytics-stat-foot .success-dot{
+ background:#16845c!important;
+ box-shadow:0 0 0 2px #d8eee5!important;
+}
+#view-analytics .status-legend-dot{
+ border:1px solid rgba(30,55,80,.25)!important;
+}
