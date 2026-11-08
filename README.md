@@ -23,7 +23,7 @@ PedidoClaro explora cómo preparar, revisar y exportar pedidos antes de introduc
 - Diseño responsive y controles automáticos en GitHub Actions.
 
 ## Catálogo de productos
-El catálogo admite columnas `referencia`, `producto` y `precio_unitario` (obligatorias), con `unidad` opcional. Al importar, las referencias existentes se actualizan y las nuevas se añaden. Al importar pedidos CSV, las referencias se comparan con el catálogo: se marcan las referencias desconocidas y las diferencias de precio para revisión humana. No se corrigen ni aprueban automáticamente. No existe sincronización con inventario ni ERP.
+El catálogo admite columnas `referencia`, `producto` y `precio_unitario` (obligatorias), con `unidad` opcional. Al importar, las referencias existentes se actualizan y las nuevas se añaden. También puedes editar productos y aplicar sus datos a una línea del pedido, que queda pendiente de confirmación humana. Al importar pedidos CSV, las referencias se comparan con el catálogo: se marcan las referencias desconocidas y las diferencias de precio para revisión humana. No se corrigen ni aprueban automáticamente. No existe sincronización con inventario ni ERP.
 
 ## Formato CSV
 Columnas obligatorias: `cliente`, `referencia`, `producto`, `cantidad`, `precio_unitario`. Opcionales: `pedido`, `unidad`. Se admiten separadores punto y coma, coma o tabulador. Cada línea importada queda pendiente de revisión humana. La plantilla dentro de la aplicación muestra un ejemplo.
