@@ -75,7 +75,7 @@ def main():
             result=subprocess.run([node,"--check",str(ROOT/name)],text=True,capture_output=True)
             if result.returncode: print(result.stderr,file=sys.stderr); raise SystemExit(name+": error de sintaxis")
         limit_start=js.index("function orderLineLimitReached(count){")
-        limit_end=js.index("\\nfunction searchKey",limit_start)
+        limit_end=js.index("\nfunction searchKey",limit_start)
         limit_helper=js[limit_start:limit_end]
         limit_tests=limit_helper+r"""
 const assert=require("node:assert/strict");
