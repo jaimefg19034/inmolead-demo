@@ -107,13 +107,14 @@ async function catalogCsvImport(file){
  const originalHeaders=rows.shift(),headers=originalHeaders.map(normHeader),idx=(...names)=>headers.findIndex(h=>names.includes(h));
  const cols={sku:idx("referencia","sku","codigo","codigo_producto"),name:idx("producto","product","descripcion","nombre"),unit:idx("unidad","unit","ud"),price:idx("precio_unitario","precio","price","unit_price")};
  const missing=["sku","name","price"].filter(k=>cols[k]<0);if(missing.length)throw new Error("Faltan columnas: "+missing.join(", ")+".");
- let added=0,updated=0;const errors=[];
+ let added=0,updated=0;const errors=[],seenSkus=new Set();
  for(let i=0;i<rows.length;i++){
   const row=rows[i],get=k=>cols[k]<0?"":String(row[cols[k]]??"").trim();
   const sku=get("sku").slice(0,80),name=get("name").slice(0,160),unit=(get("unit")||"ud.").slice(0,30),price=parseNumber(get("price"));
   let reason="";
   if(!sku)reason="Falta la referencia SKU";else if(!name)reason="Falta el nombre del producto";else if(!get("price")||!Number.isFinite(price))reason="Precio vacío o no numérico";else if(price<0||price>999999)reason="Precio fuera del límite permitido (0–999.999)";
   if(reason){errors.push({row:i+2,reason,values:row});continue;}
+  const normalizedSku=sku.toLocaleLowerCase("es");if(seenSkus.has(normalizedSku)){errors.push({row:i+2,reason:"SKU duplicado dentro del mismo CSV",values:row});continue;}seenSkus.add(normalizedSku);
   const found=state.catalog.find(p=>p.sku.toLocaleLowerCase("es")===sku.toLocaleLowerCase("es"));
   if(found){found.name=name;found.unit=unit;found.price=Math.round(price*100)/100;updated++;}
   else{state.catalog.push({sku,name,unit,price:Math.round(price*100)/100});added++;}
