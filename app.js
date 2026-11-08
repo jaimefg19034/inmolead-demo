@@ -159,14 +159,20 @@ function renderAnalytics(){
 
 
 function renderDashboardCharts(){
- const total=state.orders.length,approved=state.orders.filter(o=>o.status==="approved").length,pending=state.orders.filter(o=>["review","ready"].includes(o.status)).length,rejected=state.orders.filter(o=>o.status==="rejected").length;
- const p1=total?pending/total*100:0,p2=total?approved/total*100:0;
+ const groups=[
+  {label:"Por revisar / listos",key:"pending",orders:state.orders.filter(o=>["review","ready"].includes(o.status)),color:"amber"},
+  {label:"Aprobados",key:"approved",orders:state.orders.filter(o=>o.status==="approved"),color:"green"},
+  {label:"Descartados",key:"rejected",orders:state.orders.filter(o=>o.status==="rejected"),color:"slate"}
+ ];
+ const total=state.orders.length,maxCount=Math.max(1,...groups.map(g=>g.orders.length)),maxValue=Math.max(1,...groups.map(g=>g.orders.reduce((n,o)=>n+sum(o),0)));
+ const pending=groups[0].orders.length,approved=groups[1].orders.length,p1=total?pending/total*100:0,p2=total?approved/total*100:0;
  const donut="conic-gradient(#e6a23c 0 "+p1+"%,#2caa78 "+p1+"% "+(p1+p2)+"%,#aab5c5 "+(p1+p2)+"% 100%)";
- $("dashboard-status").innerHTML=total?'<div class="status-chart-layout"><div class="status-donut" style="background:'+donut+'"><div class="status-donut-hole"><strong>'+total+'</strong><small>PEDIDOS</small></div></div><div class="status-chart-legend">'+[["Por revisar / listos",pending],["Aprobados",approved],["Descartados",rejected]].map((s,i)=>'<div class="status-legend-row"><span><i class="status-legend-dot seg-dot-'+i+'"></i>'+s[0]+'</span><b>'+s[1]+'</b></div>').join("")+'</div></div>':'<div class="dashboard-empty">Aún no hay pedidos. Importa un CSV o crea un pedido de demostración para generar la gráfica.</div>';
+ const countBars=groups.map(g=>'<div class="dash-metric-row"><span>'+g.label+'</span><div class="dash-track"><i class="dash-fill '+g.color+'" style="width:'+Math.max(g.orders.length?3:0,g.orders.length/maxCount*100)+'%"></i></div><b>'+g.orders.length+'</b></div>').join("");
+ const valueBars=groups.map(g=>{const value=g.orders.reduce((n,o)=>n+sum(o),0);return '<div class="dash-metric-row"><span>'+g.label+'</span><div class="dash-track"><i class="dash-fill '+g.color+'" style="width:'+Math.max(value?3:0,value/maxValue*100)+'%"></i></div><b>'+money(value)+'</b></div>';}).join("");
+ $("dashboard-status").innerHTML=total?'<div class="status-chart-layout"><div class="status-donut" style="background:'+donut+'"><div class="status-donut-hole"><strong>'+total+'</strong><small>PEDIDOS</small></div></div><div class="status-chart-legend">'+groups.map((g,i)=>'<div class="status-legend-row"><span><i class="status-legend-dot seg-dot-'+i+'"></i>'+g.label+'</span><b>'+g.orders.length+'</b></div>').join("")+'</div></div><div class="dashboard-metric-charts"><div><div class="dash-chart-title">Pedidos por estado</div>'+countBars+'</div><div><div class="dash-chart-title">Valor por estado</div>'+valueBars+'</div></div>':'<div class="dashboard-empty">Aún no hay pedidos. Importa un CSV o crea un pedido de demostración para generar las gráficas.</div>';
  const top=clientSummary().slice(0,5),max=Math.max(1,...top.map(x=>x.total));
- $("dashboard-clients").innerHTML=top.length?top.map((x,i)=>'<div class="analytics-top-row"><span><i>'+(i+1)+'</i><b>'+esc(x.name)+'</b></span><div class="analytics-bar-wrap"><i style="width:'+Math.max(3,x.total/max*100)+'%"></i></div><strong>'+money(x.total)+'</strong></div>').join(""):'<div class="dashboard-empty">Cuando haya pedidos, aquí verás los clientes con mayor volumen.</div>';
+ $("dashboard-clients").innerHTML=top.length?'<div class="dashboard-client-total"><span>Clientes con actividad</span><strong>'+clientSummary().length+'</strong></div>'+top.map((x,i)=>'<div class="analytics-top-row"><span><i>'+(i+1)+'</i><b>'+esc(x.name)+'</b></span><div class="analytics-bar-wrap"><i style="width:'+Math.max(3,x.total/max*100)+'%"></i></div><strong>'+money(x.total)+'</strong></div>').join(""):'<div class="dashboard-empty">Cuando haya pedidos, aquí verás los clientes con mayor volumen.</div>';
 }
-
 
 function downloadFile(name,content,type){const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 function csvParse(text){
