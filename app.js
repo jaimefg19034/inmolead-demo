@@ -28,6 +28,7 @@ function log(message,id=""){state.activity.unshift({message,id,time:new Date().t
 function derived(o){if(final(o))return o.status;return issues(o)?"review":"ready";}
 function stats(){$("stat-pending").textContent=state.orders.filter(o=>["review","ready"].includes(o.status)).length;$("stat-ready").textContent=state.orders.filter(o=>o.status==="ready").length;$("stat-issues").textContent=state.orders.reduce((n,o)=>n+issues(o),0);$("stat-approved").textContent=state.orders.filter(o=>o.status==="approved").length;}
 function orderLineLimitReached(count){return count>=100;}
+function catalogCapacityReached(count){return count>=5000;}
 function searchKey(value){return String(value??"").toLocaleLowerCase("es").normalize("NFD").replace(/[\u0300-\u036f]/g,"");}
 function getVisibleOrders(){
  const q=searchKey($("search").value.trim()),f=$("filter").value,sort=$("sort-orders")?.value||"recent";
@@ -235,6 +236,7 @@ async function catalogCsvImport(file){
   const normalizedSku=sku.toLocaleLowerCase("es");if(seenSkus.has(normalizedSku)){errors.push({row:i+2,reason:"SKU duplicado dentro del mismo CSV",values:row});continue;}seenSkus.add(normalizedSku);
   const foundIndex=catalogBySku.get(normalizedSku);
   if(foundIndex!==undefined){nextCatalog[foundIndex]={...nextCatalog[foundIndex],name,unit,price:Math.round(price*100)/100};updated++;}
+  else if(catalogCapacityReached(nextCatalog.length)){errors.push({row:i+2,reason:"El catálogo no puede superar los 5.000 productos",values:row});}
   else{catalogBySku.set(normalizedSku,nextCatalog.length);nextCatalog.push({sku,name,unit,price:Math.round(price*100)/100});added++;}
  }
  if(errors.length)downloadImportErrors("pedidoclaro-errores-catalogo.csv",originalHeaders,errors);
@@ -436,6 +438,7 @@ function auditImportRows(rows,kind,fingerprint){
    else if(!sku)item.reason="Falta la referencia SKU";else if(sku.length>80)item.reason="La referencia SKU supera el máximo de 80 caracteres";else if(!name)item.reason="Falta el nombre del producto";else if(name.length>160)item.reason="El nombre del producto supera el máximo de 160 caracteres";else if(cols.unit>=0&&get("unit").length>30)item.reason="La unidad supera el máximo de 30 caracteres";else if(!get("price")||!Number.isFinite(price))item.reason="Precio vacío o no numérico";else if(price<0||price>999999)item.reason="Precio fuera del límite (0–999.999)";
    const normalized=sku.toLocaleLowerCase("es");
    if(!item.reason&&seen.has(normalized))item.reason="SKU duplicado dentro del mismo CSV";
+   if(!item.reason&&!state.catalog.some(p=>p.sku.toLocaleLowerCase("es")===normalized)&&catalogCapacityReached(state.catalog.length+audit.added))item.reason="El catálogo no puede superar los 5.000 productos";
    if(!item.reason){
     seen.add(normalized);
     if(state.catalog.some(p=>p.sku.toLocaleLowerCase("es")===normalized)){audit.updated++;item.status="update";item.reason="Actualizará una referencia existente";}
