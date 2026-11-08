@@ -158,6 +158,16 @@ function renderAnalytics(){
 }
 
 
+function renderDashboardCharts(){
+ const total=state.orders.length,approved=state.orders.filter(o=>o.status==="approved").length,pending=state.orders.filter(o=>["review","ready"].includes(o.status)).length,rejected=state.orders.filter(o=>o.status==="rejected").length;
+ const p1=total?pending/total*100:0,p2=total?approved/total*100:0;
+ const donut="conic-gradient(#e6a23c 0 "+p1+"%,#2caa78 "+p1+"% "+(p1+p2)+"%,#aab5c5 "+(p1+p2)+"% 100%)";
+ $("dashboard-status").innerHTML=total?'<div class="status-chart-layout"><div class="status-donut" style="background:'+donut+'"><div class="status-donut-hole"><strong>'+total+'</strong><small>PEDIDOS</small></div></div><div class="status-chart-legend">'+[["Por revisar / listos",pending],["Aprobados",approved],["Descartados",rejected]].map((s,i)=>'<div class="status-legend-row"><span><i class="status-legend-dot seg-dot-'+i+'"></i>'+s[0]+'</span><b>'+s[1]+'</b></div>').join("")+'</div></div>':'<div class="dashboard-empty">Aún no hay pedidos. Importa un CSV o crea un pedido de demostración para generar la gráfica.</div>';
+ const top=clientSummary().slice(0,5),max=Math.max(1,...top.map(x=>x.total));
+ $("dashboard-clients").innerHTML=top.length?top.map((x,i)=>'<div class="analytics-top-row"><span><i>'+(i+1)+'</i><b>'+esc(x.name)+'</b></span><div class="analytics-bar-wrap"><i style="width:'+Math.max(3,x.total/max*100)+'%"></i></div><strong>'+money(x.total)+'</strong></div>').join(""):'<div class="dashboard-empty">Cuando haya pedidos, aquí verás los clientes con mayor volumen.</div>';
+}
+
+
 function downloadFile(name,content,type){const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 function csvParse(text){
  const first=(text.split(/\r?\n/,1)[0]||"");let delimiter=";",best=-1;
@@ -254,7 +264,7 @@ async function restoreData(file){
  state.orders=cleanOrders;state.catalog=cleanCatalog;state.orders.forEach(o=>{if(!["approved","rejected"].includes(o.status))o.status=derived(o);});state.activity=cleanActivity;state.counter=Math.max(Number(data.counter)||0,...cleanOrders.map(o=>Number(String(o.id).replace("PD-",""))||0));state.selected=state.orders[0]?.id||null;persist();render();notify("Copia restaurada correctamente.");
 }
 
-function render(){renderList();renderCatalog();renderActivity();renderClients();renderAnalytics();}
+function render(){renderList();renderCatalog();renderActivity();renderClients();renderAnalytics();renderDashboardCharts();}
 function addOrder(client,channel,lines){state.counter=Math.max(state.counter,...state.orders.map(o=>Number(o.id.slice(3))||0))+1;const o={id:"PD-"+state.counter,client,date:"Ahora",channel,status:"review",lines};o.status=derived(o);state.orders.unshift(o);state.selected=o.id;log("Creó el pedido ficticio "+o.id,o.id);render();notify("Pedido ficticio añadido.");}
 function parseText(){const raw=$("raw-order").value.trim();if(!raw){notify("Pega un pedido de ejemplo primero.");return;}const client=(raw.match(/cliente\s*:\s*([^\n;]+)/i)||[])[1]?.trim()||"Cliente de texto",rules=[{re:/(\d+)\s*(?:cajas?\s+de\s+)?tornillos?/i,name:"Tornillo inox A2 5×50",sku:"TOR-INOX-550",unit:"caja",price:18.5},{re:/(\d+)\s*(?:unidades?|uds?\.?|ud\.?)\s+de\s+silicona/i,name:"Silicona neutra blanca 300 ml",sku:"SIL-NEU-BLA",unit:"ud.",price:4.1},{re:/(\d+)\s*(?:cajas?\s+de\s+)?tacos?/i,name:"Taco nylon universal 8 mm",sku:"TACO-UNIV-08",unit:"caja",price:7.2},{re:/(\d+)\s*(?:unidades?|uds?\.?|ud\.?)\s+de\s+discos?\s+de\s+corte/i,name:"Disco corte inox 115 mm",sku:"DIS-INOX-115",unit:"ud.",price:2.8}],lines=rules.flatMap(r=>{const m=raw.match(r.re);if(!m)return[];const product=state.catalog.find(p=>p.sku.toLocaleLowerCase("es")===r.sku.toLocaleLowerCase("es"));return [{name:product?.name||r.name,sku:r.sku,qty:+m[1],unit:product?.unit||r.unit,price:product?.price??r.price,issue:product?"Confirma la referencia y cantidad extraída":"Referencia no encontrada en el catálogo",checked:false}];});if(!lines.length){notify("No reconozco artículos. Prueba con tornillos, tacos o silicona.");return;}addOrder(client,"Texto pegado (parser local)",lines);$("raw-order").value="";}
 function view(name){document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id==="view-"+name));document.querySelectorAll(".navbtn").forEach(b=>b.classList.toggle("active",b.dataset.view===name));$("crumb").textContent={orders:"Bandeja de pedidos",catalog:"Catálogo de productos",clients:"Clientes",analytics:"Analítica",activity:"Actividad reciente",guide:"Cómo funciona"}[name];if(name==="catalog")renderCatalog();if(name==="clients")renderClients();if(name==="analytics")renderAnalytics();}
