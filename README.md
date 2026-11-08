@@ -8,7 +8,7 @@ PedidoClaro explora cómo preparar, revisar y exportar pedidos antes de introduc
 
 ## Funciones disponibles en la demo
 - Bandeja de pedidos con búsqueda y filtros.
-- Revisión de líneas, cantidades y precios.
+- Revisión de líneas, cantidades y precios con límites de validación (1–999.999 unidades y 0–999.999 € por unidad).
 - Confirmación de incidencias y bloqueo de aprobación si quedan pendientes.
 - Aprobación y descarte locales.
 - Exportación CSV de un pedido o de toda la bandeja.
