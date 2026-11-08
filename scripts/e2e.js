@@ -75,11 +75,15 @@ const { spawn } = require("node:child_process");
       const saved = JSON.parse(localStorage.getItem("pedidoclaro-demo-v2") || "{}");
       return Array.isArray(saved.orders) && saved.orders.length === 6 && Array.isArray(saved.catalog) && saved.catalog.some(product => product.sku === "E2E-CSV");
     }, null, { timeout: 10000 });
-    await page.waitForFunction(() => /Copia restaurada correctamente/.test(document.querySelector("#toast")?.textContent || ""), null, { timeout: 10000 });
+    await page.locator("#catalog-list [data-product-edit]").first().waitFor({ state: "visible" });
     await page.locator("#catalog-search").fill("E2E-POST");
     assert.equal(await page.locator("#catalog-list [data-product-edit]").count(), 0);
     await page.locator("#catalog-search").fill("E2E-CSV");
     assert.equal(await page.locator("#catalog-list [data-product-edit]").count(), 1);
+    const beforeInvalidRestore = await page.evaluate(() => localStorage.getItem("pedidoclaro-demo-v2"));
+    await backupInput.setInputFiles({ name: "copia-invalida.json", mimeType: "application/json", buffer: Buffer.from('{"app":"Otro","version":2}') });
+    await page.waitForFunction(() => /no es una copia válida/i.test(document.querySelector("#toast")?.textContent || ""), null, { timeout: 10000 });
+    assert.equal(await page.evaluate(() => localStorage.getItem("pedidoclaro-demo-v2")), beforeInvalidRestore, "Una copia inválida no debe modificar los datos guardados");
     assert.deepEqual(pageErrors, [], "La aplicación no debe generar errores JavaScript en consola");
 
     console.log("E2E OK: revisar, aprobar, crear/editar catálogo, importar CSV, exportar y restaurar copia.");
