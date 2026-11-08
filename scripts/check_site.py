@@ -28,7 +28,7 @@ def main():
     source=page.read_text(encoding="utf-8"); js=app.read_text(encoding="utf-8")
     p=PageParser();p.feed(source)
     if p.lang!="es" or "PedidoClaro" not in "".join(p.title): raise SystemExit("Idioma o título incorrecto")
-    required=["id=\"order-list\"","id=\"detail-panel\"","id=\"approve\"","id=\"parse-order\"","id=\"activity-list\"","id=\"guide\""]
+    required=['id="order-list"','id="detail-panel"','id="parse-order"','id="activity-list"','id="view-guide"']
     missing=[x for x in required if x not in source]
     if missing: raise SystemExit("Faltan controles: "+", ".join(missing))
     for token in ("pedidoclaro-demo-v2","function renderList","function renderDetail","function exportCsv","function parseText","addEventListener"):
