@@ -128,3 +128,61 @@ dialog{border:0;border-radius:18px;padding:26px}
 
 .catalog-table td:last-child{white-space:nowrap}
 [data-catalog-apply]{border-color:#c8d8f2;color:#315b9c}
+
+
+/* Final interaction and responsive polish */
+:root{--focus-ring:0 0 0 3px rgba(49,94,234,.16)}
+html{scroll-behavior:smooth}
+button,.btn,.navbtn,.iconbtn{ -webkit-tap-highlight-color:transparent}
+button:focus-visible,.btn:focus-visible,.iconbtn:focus-visible,.navbtn:focus-visible{outline:0;box-shadow:var(--focus-ring)}
+button:active,.btn:active{transform:translateY(1px)}
+.panel-head{flex-wrap:wrap}
+.panel-actions{flex-wrap:wrap;justify-content:flex-end}
+.panel-actions .btn{white-space:nowrap}
+.order-list{scrollbar-width:thin;scrollbar-color:#cbd5e1 transparent}
+.table-wrap{scrollbar-width:thin;scrollbar-color:#cbd5e1 transparent}
+.lines tbody tr:hover{background:#f8faff}
+.lines td{line-height:1.45}
+.catalog-table th{position:sticky;top:0;background:#fff;z-index:1}
+.empty-state{border-top:1px solid #f0f2f6}
+.banner{max-width:1000px}
+.toast{line-height:1.5}
+dialog{max-height:calc(100dvh - 32px);overflow:auto}
+@media(max-width:760px){
+ .topbar{position:relative}
+ .top-actions{margin-left:auto}
+ .pagehead{gap:13px}
+ .panel-actions{width:100%;justify-content:flex-start}
+ .panel-actions .btn{flex:1}
+ .detail-actions{align-items:stretch}
+ .detail-actions>div{flex-wrap:wrap}
+ .detail-actions .btn{flex:1}
+ .catalog-table-wrap{padding:0 12px 14px}
+}
+@media(max-width:480px){
+ .sidebar{overflow-x:auto;overscroll-behavior-x:contain}
+ .brand{flex:0 0 auto;font-size:15px}
+ .navbtn{flex:1 0 auto;min-width:38px}
+ .navtext{display:none}
+ .navicon{font-size:17px}
+ .topbar .crumb span:first-child{display:none}
+ .top-actions .demo-pill{white-space:nowrap}
+ .pagehead h1{font-size:25px}
+ .panel-head{align-items:flex-start}
+ .panel-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+ .panel-actions .btn{width:100%}
+ .stats .stat{min-height:100px}
+ .detail-actions{gap:6px}
+}
+@media(max-width:360px){
+ .main{padding-left:8px;padding-right:8px}
+ .brand{font-size:14px}
+ .navbtn{padding:9px 5px}
+ .top-actions .demo-pill{font-size:6px}
+ .head-actions{grid-template-columns:1fr 1fr}
+ .head-actions .btn{font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){
+ html{scroll-behavior:auto}
+ button:active,.btn:active{transform:none}
+}
