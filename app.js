@@ -416,41 +416,7 @@ async function restoreData(file){
  state.orders=cleanOrders;state.catalog=cleanCatalog;state.rules=cleanRuleSet(data.rules||defaultRules);state.customerRules=cleanCustomerRules;state.orders.forEach(o=>{if(!["approved","rejected"].includes(o.status))o.status=derived(o);});state.activity=cleanActivity;state.counter=Math.max(Number(data.counter)||0,...cleanOrders.map(o=>Number(String(o.id).replace("PD-",""))||0));state.selected=state.orders[0]?.id||null;persist();render();notify("Copia restaurada correctamente.");
 }
 
-function renderReviewQueue(){
- const findings=[];
- for(const o of state.orders){
-  if(final(o))continue;
-  for(const [lineIndex,line] of o.lines.entries()){
-   if(line.checked&&!line.issue)continue;
-   const product=state.catalog.find(p=>String(p.sku).toLocaleLowerCase("es")===String(line.sku).toLocaleLowerCase("es"));
-   const reasons=[];
-   if(line.issue)reasons.push(line.issue);
-   else reasons.push("Línea pendiente de confirmar");
-   const clientRules=rulesForClient(o.client);
-   if(!product&&clientRules.unknownSku==="review")reasons.push("SKU no existe en el catálogo");
-   else if(product&&priceDiffers(product.price,line.price,clientRules))reasons.push("Precio distinto al de referencia");
-   if(reasons.length)findings.push({order:o,line,lineIndex,reasons});
-  }
- }
- findings.sort((a,b)=>(b.reasons.length-a.reasons.length)||sum(b.order)-sum(a.order));
- const unique=new Set(findings.map(x=>x.order.id));
- $("review-queue-count").textContent=findings.length+" líneas · "+unique.size+" pedidos";
- $("review-queue-list").innerHTML=findings.length?findings.slice(0,6).map(x=>'<article class="review-queue-row"><span class="review-queue-mark">!</span><div class="review-queue-main"><div><b>'+esc(x.line.name||x.line.sku)+'</b><small>'+esc(x.order.id)+' · '+esc(x.order.client)+'</small></div><p>'+x.reasons.map(esc).join(" · ")+'</p></div><strong class="review-queue-value">'+money(x.line.qty*x.line.price)+'</strong><button class="btn secondary smallbtn" data-review-order="'+esc(x.order.id)+'" data-review-line="'+x.lineIndex+'">Revisar esta línea ↗</button></article>').join(""):'<div class="review-queue-empty"><span>✓</span><div><b>Todo al día</b><p>No hay líneas pendientes ni diferencias detectadas frente al catálogo local.</p></div></div>';
- $("review-queue-list").querySelectorAll("[data-review-order]").forEach(b=>b.onclick=()=>{
-  const id=b.dataset.reviewOrder,lineIndex=Number(b.dataset.reviewLine);
-  if(!state.orders.some(o=>o.id===id)){notify("No se encuentra ese pedido. Actualiza la cola.");render();return;}
-  state.selected=id;view("orders");render();
-  window.setTimeout(()=>{
-   const row=$("line-row-"+lineIndex),target=row||$("detail-panel");
-   target?.scrollIntoView({behavior:"smooth",block:"center"});
-   const action=row?.querySelector("[data-resolve]")||row?.querySelector("[data-edit]")||row;
-   if(action&&action!==row){action.focus({preventScroll:true});}
-   row?.classList.add("review-focus");
-   if(!row){const heading=$("detail-panel")?.querySelector(".detail-head h2");if(heading){heading.setAttribute("tabindex","-1");heading.focus({preventScroll:true});}}
-  },100);
- });
-}
-function render(){renderList();renderCatalog();renderActivity();renderClients();renderAnalytics();renderDashboardCharts();renderReviewQueue();}
+function render(){renderList();renderCatalog();renderActivity();renderClients();renderAnalytics();renderDashboardCharts();}
 function addOrder(client,channel,lines){state.counter=Math.max(state.counter,...state.orders.map(o=>Number(o.id.slice(3))||0))+1;const o={id:"PD-"+state.counter,client,date:"Ahora",channel,status:"review",lines};o.status=derived(o);state.orders.unshift(o);state.selected=o.id;log("Creó el pedido ficticio "+o.id,o.id);render();notify("Pedido ficticio añadido.");}
 function parseText(){const raw=$("raw-order").value.trim();if(!raw){notify("Pega un pedido de ejemplo primero.");return;}const client=(raw.match(/cliente\s*:\s*([^\n;]+)/i)||[])[1]?.trim()||"Cliente de texto",rules=[{re:/(\d+)\s*(?:cajas?\s+de\s+)?tornillos?/i,name:"Tornillo inox A2 5×50",sku:"TOR-INOX-550",unit:"caja",price:18.5},{re:/(\d+)\s*(?:unidades?|uds?\.?|ud\.?)\s+de\s+silicona/i,name:"Silicona neutra blanca 300 ml",sku:"SIL-NEU-BLA",unit:"ud.",price:4.1},{re:/(\d+)\s*(?:cajas?\s+de\s+)?tacos?/i,name:"Taco nylon universal 8 mm",sku:"TACO-UNIV-08",unit:"caja",price:7.2},{re:/(\d+)\s*(?:unidades?|uds?\.?|ud\.?)\s+de\s+discos?\s+de\s+corte/i,name:"Disco corte inox 115 mm",sku:"DIS-INOX-115",unit:"ud.",price:2.8}],lines=rules.flatMap(r=>{const m=raw.match(r.re);if(!m)return[];const product=state.catalog.find(p=>p.sku.toLocaleLowerCase("es")===r.sku.toLocaleLowerCase("es"));return [{name:product?.name||r.name,sku:r.sku,qty:+m[1],unit:product?.unit||r.unit,price:product?.price??r.price,issue:product?"Confirma la referencia y cantidad extraída":"Referencia no encontrada en el catálogo",checked:false}];});if(!lines.length){notify("No reconozco artículos. Prueba con tornillos, tacos o silicona.");return;}addOrder(client,"Texto pegado (parser local)",lines);$("raw-order").value="";}
 function view(name){document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id==="view-"+name));document.querySelectorAll(".navbtn").forEach(b=>b.classList.toggle("active",b.dataset.view===name));$("crumb").textContent={orders:"Bandeja de pedidos",catalog:"Catálogo de productos",clients:"Clientes",analytics:"Analítica",activity:"Actividad reciente",guide:"Cómo funciona"}[name];if(name==="catalog")renderCatalog();if(name==="clients")renderClients();if(name==="analytics")renderAnalytics();}
@@ -470,7 +436,7 @@ function openRulesDialog(clientName=null){
  $("rules-dialog").showModal();
 }
 $("open-rules").onclick=()=>openRulesDialog();
-$("open-rules-queue").onclick=()=>openRulesDialog();
+
 $("rules-cancel").onclick=()=>$("rules-dialog").close();
 $("rules-reset-client").onclick=()=>{
  if(!editingRulesClient)return;
