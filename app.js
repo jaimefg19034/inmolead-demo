@@ -202,6 +202,68 @@ function csvParse(text){
 }
 function normHeader(s){return String(s||"").trim().toLocaleLowerCase("es").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[\s-]+/g,"_");}
 let pendingImport=null;
+function auditImportRows(rows,kind){
+ const originalHeaders=rows[0],headers=originalHeaders.map(normHeader),idx=(...names)=>headers.findIndex(h=>names.includes(h));
+ validateCsvHeaders(originalHeaders);
+ const audit={headers:originalHeaders,rows:[],valid:0,rejected:0,warnings:0,duplicates:0,groups:0,importable:0,added:0,updated:0,errors:[],mapping:[]};
+ if(kind==="orders"){
+  const cols={order:idx("pedido","order_id","id_pedido","numero_pedido"),client:idx("cliente","customer","empresa"),sku:idx("referencia","sku","codigo","codigo_producto"),name:idx("producto","product","descripcion","nombre"),qty:idx("cantidad","qty","quantity"),unit:idx("unidad","unit","ud"),price:idx("precio_unitario","precio","price","unit_price")};
+  const required=["client","sku","name","qty","price"],missing=required.filter(k=>cols[k]<0);
+  if(missing.length)throw new Error("Faltan columnas obligatorias: "+missing.join(", ")+". Descarga la plantilla para ver el formato.");
+  audit.mapping=[["Pedido",cols.order],["Cliente",cols.client],["Referencia",cols.sku],["Producto",cols.name],["Cantidad",cols.qty],["Unidad",cols.unit],["Precio",cols.price]].filter(x=>x[1]>=0);
+  const groupMap=new Map(),skuSets=new Map();
+  for(let i=1;i<rows.length;i++){
+   const r=rows[i],get=k=>cols[k]<0?"":String(r[cols[k]]??"").trim();
+   const item={row:i+1,values:r,status:"ok",reason:""};
+   if(r.length!==originalHeaders.length)item.reason="Número de columnas distinto al encabezado";
+   else{
+    const client=get("client"),sku=get("sku"),name=get("name"),qty=parseNumber(get("qty")),price=parseNumber(get("price"));
+    if(!client)item.reason="Falta el cliente";else if(!sku)item.reason="Falta la referencia SKU";else if(!name)item.reason="Falta el nombre del producto";else if(!get("qty")||!Number.isFinite(qty))item.reason="Cantidad vacía o no numérica";else if(!Number.isInteger(qty)||qty<1||qty>999999)item.reason="Cantidad fuera del límite (1–999.999)";else if(!get("price")||!Number.isFinite(price))item.reason="Precio vacío o no numérico";else if(price<0||price>999999)item.reason="Precio fuera del límite (0–999.999)";
+    if(!item.reason){
+     const source=get("order")||"__LOTE_PREVIEW__",key=source+"|"+client,sk=sku.toLocaleLowerCase("es");
+     if(!groupMap.has(key))groupMap.set(key,{sourceId:key,client,order:get("order"),lines:0,existing:false});
+     const group=groupMap.get(key);group.lines++;
+     if(!skuSets.has(key))skuSets.set(key,new Set());
+     if(skuSets.get(key).has(sk)){item.status="warning";item.reason="Referencia repetida dentro del mismo pedido";}else skuSets.get(key).add(sk);
+     const product=state.catalog.find(p=>p.sku.toLocaleLowerCase("es")===sk);
+     if(!product){if(item.status==="ok")item.status="warning";item.reason+=(item.reason?"; ":"")+"SKU no encontrado en catálogo";}
+     else if(Math.abs(product.price-Math.round(price*100)/100)>0.01){if(item.status==="ok")item.status="warning";item.reason+=(item.reason?"; ":"")+"Precio distinto al catálogo";}
+     if(get("order")&&state.orders.some(o=>o.sourceId===key)){item.status="duplicate";item.reason="Este pedido y cliente ya se importaron anteriormente";group.existing=true;}
+    }
+   }
+   if(item.reason&&item.status==="ok"){item.status="rejected";audit.rejected++;audit.errors.push({row:item.row,reason:item.reason,values:r});}
+   else if(item.status==="duplicate"){audit.duplicates++;}
+   else if(item.status==="warning"){audit.warnings++;audit.valid++;}
+   else if(item.status==="ok"){audit.valid++;}
+   audit.rows.push(item);
+  }
+  audit.groups=groupMap.size;
+  audit.importable=[...groupMap.values()].filter(g=>!g.existing).length;
+ }else{
+  const cols={sku:idx("referencia","sku","codigo","codigo_producto"),name:idx("producto","product","descripcion","nombre"),unit:idx("unidad","unit","ud"),price:idx("precio_unitario","precio","price","unit_price")};
+  const missing=["sku","name","price"].filter(k=>cols[k]<0);
+  if(missing.length)throw new Error("Faltan columnas obligatorias: "+missing.join(", ")+".");
+  audit.mapping=[["Referencia",cols.sku],["Producto",cols.name],["Unidad",cols.unit],["Precio",cols.price]].filter(x=>x[1]>=0);
+  const seen=new Set();
+  for(let i=1;i<rows.length;i++){
+   const r=rows[i],get=k=>cols[k]<0?"":String(r[cols[k]]??"").trim(),sku=get("sku"),name=get("name"),price=parseNumber(get("price"));
+   const item={row:i+1,values:r,status:"ok",reason:""};
+   if(r.length!==originalHeaders.length)item.reason="Número de columnas distinto al encabezado";
+   else if(!sku)item.reason="Falta la referencia SKU";else if(!name)item.reason="Falta el nombre del producto";else if(!get("price")||!Number.isFinite(price))item.reason="Precio vacío o no numérico";else if(price<0||price>999999)item.reason="Precio fuera del límite (0–999.999)";
+   const normalized=sku.toLocaleLowerCase("es");
+   if(!item.reason&&seen.has(normalized))item.reason="SKU duplicado dentro del mismo CSV";
+   if(!item.reason){
+    seen.add(normalized);
+    if(state.catalog.some(p=>p.sku.toLocaleLowerCase("es")===normalized)){audit.updated++;item.status="update";item.reason="Actualizará una referencia existente";}
+    else{audit.added++;item.reason="Añadirá una referencia nueva";}
+    audit.valid++;
+   }else{item.status="rejected";audit.rejected++;audit.errors.push({row:item.row,reason:item.reason,values:r});}
+   audit.rows.push(item);
+  }
+  audit.groups=audit.valid;audit.importable=audit.valid;
+ }
+ return audit;
+}
 async function showImportPreview(file,kind){
  if(!file)return;
  if(file.size>2*1024*1024)throw new Error("El fichero supera el límite de 2 MB.");
@@ -209,16 +271,28 @@ async function showImportPreview(file,kind){
  if(rows.length<2)throw new Error("El CSV está vacío o solo contiene encabezados.");
  const max=kind==="orders"?1001:5001;
  if(rows.length>max)throw new Error("Se supera el máximo de "+(max-1).toLocaleString("es-ES")+" filas.");
- const headers=rows[0],preview=rows.slice(1,7),dataCount=rows.length-1;
- $("import-preview-title").textContent=kind==="orders"?"Vista previa de pedidos":"Vista previa del catálogo";
- $("import-preview-file").textContent=file.name+" · "+(file.size/1024).toFixed(1)+" KB";
- $("import-preview-summary").textContent=dataCount.toLocaleString("es-ES")+" filas de datos · "+headers.length+" columnas";
- $("import-preview-content").innerHTML='<div class="table-wrap import-preview-table"><table class="lines"><thead><tr>'+headers.map(h=>"<th>"+esc(h||"(sin nombre)")+"</th>").join("")+'</tr></thead><tbody>'+preview.map(row=>'<tr>'+headers.map((_,i)=>"<td>"+esc(row[i]??"")+"</td>").join("")+'</tr>').join("")+'</tbody></table></div>';
- $("import-preview-more").textContent=dataCount>preview.length?"Mostrando las primeras "+preview.length+" filas de "+dataCount+".":"Se muestran todas las filas.";
- $("import-preview-note").textContent="La validación de columnas, cantidades, precios y duplicados se ejecutará al confirmar. Las filas rechazadas se descargarán en un informe separado.";
- pendingImport={file,kind};
+ const audit=auditImportRows(rows,kind),dataCount=rows.length-1;
+ $("import-preview-title").textContent=kind==="orders"?"Informe de calidad · Pedidos":"Informe de calidad · Catálogo";
+ $("import-preview-file").textContent=file.name+" · "+(file.size/1024).toFixed(1)+" KB · "+dataCount.toLocaleString("es-ES")+" filas";
+ $("import-preview-summary").innerHTML='<div class="import-audit-stat"><span>Filas válidas</span><b class="audit-good">'+audit.valid+'</b></div><div class="import-audit-stat"><span>Para revisar</span><b class="audit-warn">'+audit.warnings+'</b></div><div class="import-audit-stat"><span>Rechazadas</span><b class="audit-bad">'+audit.rejected+'</b></div><div class="import-audit-stat"><span>Duplicadas</span><b class="audit-neutral">'+audit.duplicates+'</b></div>';
+ $("import-preview-mapping").innerHTML='<div class="audit-section-title"><span>01</span><div><b>Columnas reconocidas</b><small>Correspondencia detectada automáticamente</small></div></div><div class="audit-mapping">'+audit.mapping.map(([name,index])=>'<span><i>✓</i>'+esc(name)+'<small>'+esc(audit.headers[index])+'</small></span>').join("")+'</div>';
+ const rowsToShow=audit.rows.slice(0,10);
+ $("import-preview-content").innerHTML='<div class="audit-section-title"><span>02</span><div><b>Revisión fila a fila</b><small>Primeras '+rowsToShow.length+' filas · '+dataCount+' en total</small></div></div><div class="import-audit-table-wrap"><table class="import-audit-table"><thead><tr><th>FILA</th><th>RESULTADO</th><th>CLIENTE / PRODUCTO</th><th>DETALLE</th></tr></thead><tbody>'+rowsToShow.map(x=>{
+  const primary=kind==="orders"?(x.values[audit.mapping.find(m=>m[0]==="Cliente")?.[1]??-1]||x.values[audit.mapping.find(m=>m[0]==="Producto")?.[1]??-1]||"—"):(x.values[audit.mapping.find(m=>m[0]==="Producto")?.[1]??-1]||"—");
+  const label=x.status==="rejected"?"Rechazada":x.status==="warning"?"Revisar":x.status==="duplicate"?"Duplicada":x.status==="update"?"Actualizar":"Correcta";
+  return '<tr><td class="audit-rownum">'+x.row+'</td><td><span class="audit-status '+x.status+'">'+label+'</span></td><td class="audit-primary">'+esc(primary)+'</td><td class="audit-reason '+(x.status==="rejected"?"bad":"")+'">'+esc(x.reason||"Datos válidos")+'</td></tr>';
+ }).join("")+'</tbody></table></div>';
+ $("import-preview-more").textContent=dataCount>rowsToShow.length?"Mostrando "+rowsToShow.length+" de "+dataCount+" filas.":"Se han analizado todas las filas.";
+ const importCount=kind==="orders"?audit.importable:audit.valid;
+ const outcome=kind==="orders"?audit.importable+" pedidos nuevos posibles · "+audit.groups+" grupos detectados":audit.added+" productos nuevos · "+audit.updated+" referencias a actualizar";
+ $("import-preview-note").innerHTML='<b>'+(audit.rejected?"Hay filas que no se importarán automáticamente.":"El análisis previo no ha detectado filas rechazadas.")+'</b><span>'+esc(outcome)+'. '+(audit.warnings?"Revisa las advertencias antes de importar. ":"")+(audit.duplicates?"Los duplicados existentes se omitirán. ":"")+'La revisión y aprobación de los pedidos seguirá siendo manual.</span>';
+ $("import-preview-errors").disabled=!audit.errors.length;
+ $("import-preview-confirm").disabled=!importCount;
+ $("import-preview-confirm").textContent=importCount?(kind==="orders"?"Importar "+importCount+" pedido(s)":"Aplicar "+importCount+" cambio(s)"):"No hay datos importables";
+ pendingImport={file,kind,audit,headers:rows[0]};
  $("import-preview-dialog").showModal();
 }
+
 function validateCsvHeaders(headers){
  const normalized=headers.map(normHeader),empty=normalized.findIndex(h=>!h);
  if(empty>=0)throw new Error("La columna "+(empty+1)+" no tiene nombre. Corrige el encabezado.");
