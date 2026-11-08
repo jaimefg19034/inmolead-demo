@@ -856,3 +856,8 @@ body{background:radial-gradient(ellipse at 80% -10%,#eaf0ff 0,transparent 36%),#
 /* v30 · Explicit confirmation feedback */
 .line-flag.ok{background:#eaf7ef;color:#24734d;border:1px solid #d1ebdc}
 .line-actions{flex-wrap:wrap}
+
+
+/* v31 · Clear review confirmation status */
+.line-reviewed-at{display:block;flex-basis:100%;font-size:9px;color:#688579;padding-left:2px}
+.line-actions .resolve{font-weight:800;padding:7px 10px;border:1px solid #c8e6d4;background:#f0faf4;color:#226c47}
