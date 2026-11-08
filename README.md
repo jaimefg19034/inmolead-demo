@@ -8,6 +8,8 @@ PedidoClaro explora cómo preparar, revisar y exportar pedidos antes de introduc
 
 ## Funciones disponibles en la demo
 - Bandeja de pedidos con búsqueda y filtros.
+- **Clientes:** resumen automático por cliente con pedidos, pendientes, incidencias, valor total y valor aprobado. No requiere crear fichas ni servicios externos.
+- **Analítica local:** pedidos totales, valor agregado, valor aprobado, ticket medio, tasa de aprobación, incidencias y principales clientes. Los indicadores se recalculan al cambiar los pedidos.
 - Revisión de líneas, cantidades y precios con límites de validación (1–999.999 unidades y 0–999.999 € por unidad).
 - Confirmación de incidencias y bloqueo de aprobación si quedan pendientes.
 - Aprobación y descarte locales.
@@ -22,6 +24,9 @@ PedidoClaro explora cómo preparar, revisar y exportar pedidos antes de introduc
 - Historial de acciones y guardado local.
 - **PWA / modo sin conexión**: el navegador guarda los archivos de la aplicación tras la primera visita.
 - Diseño responsive, navegación móvil compacta y controles automáticos en GitHub Actions.
+
+## Clientes y analítica
+Las vistas de Clientes y Analítica se calculan directamente desde los pedidos almacenados en el navegador. Los nombres de cliente se agrupan por coincidencia textual; todavía no hay un maestro CRM, contactos, deduplicación avanzada ni métricas contables. El valor total incluye todos los estados, mientras que el valor aprobado solo suma pedidos aprobados. No son ventas reales ni datos sincronizados.
 
 ## Catálogo de productos
 El catálogo admite columnas `referencia`, `producto` y `precio_unitario` (obligatorias), con `unidad` opcional. Al importar, las referencias existentes se actualizan y las nuevas se añaden. También puedes editar productos y aplicar sus datos a una línea del pedido, que queda pendiente de confirmación humana. Al importar pedidos CSV, las referencias se comparan con el catálogo: se marcan las referencias desconocidas, las diferencias de precio y las referencias repetidas dentro de un pedido para revisión humana. El parser de texto también utiliza los precios y unidades del catálogo cuando encuentra la referencia. No se corrigen ni aprueban automáticamente. No existe sincronización con inventario ni ERP.
