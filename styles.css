@@ -1859,3 +1859,43 @@ body,.app{background:#f3f5f8!important;color:#26364a!important}
 #view-analytics .status-legend-dot{
  border:1px solid rgba(30,55,80,.25)!important;
 }
+
+/* v45 · Importación: contraste AA y jerarquía visual */
+#import-preview-dialog{background:#fff!important;color:#24364b!important}
+#import-preview-dialog .import-wizard-kicker{color:#d1e2fb!important}
+#import-preview-dialog .import-wizard-top .muted{color:#e0e9f5!important}
+#import-preview-dialog .import-step{color:#fff!important;border-color:#8da7c8!important;background:#29496f!important}
+#import-preview-dialog .import-audit-stat{background:#fff!important;border:1px solid #cbd5e1!important;box-shadow:0 2px 7px rgba(25,45,70,.05)!important}
+#import-preview-dialog .import-audit-stat span{color:#42566e!important}
+#import-preview-dialog .audit-good{color:#12633f!important}
+#import-preview-dialog .audit-warn{color:#89500a!important}
+#import-preview-dialog .audit-bad{color:#a52832!important}
+#import-preview-dialog .audit-neutral{color:#34485f!important}
+#import-preview-dialog .audit-section-title b{color:#1f344c!important}
+#import-preview-dialog .audit-section-title small{color:#53677e!important}
+#import-preview-dialog .audit-section-title>span{background:#e6edf5!important;color:#24496f!important;border:1px solid #c6d4e3!important}
+#import-preview-dialog .audit-mapping>span{background:#f4f6f8!important;border-color:#cbd5df!important;color:#263b52!important}
+#import-preview-dialog .audit-mapping>span i{color:#12633f!important;font-weight:900!important}
+#import-preview-dialog .audit-mapping>span small{color:#40566e!important;border-color:#cbd5df!important}
+#import-preview-dialog .import-audit-table-wrap{border-color:#c6d1dd!important;background:#fff!important}
+#import-preview-dialog .import-audit-table th{background:#e9eef4!important;color:#293f57!important;border-bottom:1px solid #c6d1dd!important}
+#import-preview-dialog .import-audit-table td{color:#34495f!important;background:#fff!important;border-bottom:1px solid #e0e6ed!important}
+#import-preview-dialog .import-audit-table tbody tr:nth-child(even) td{background:#f7f9fb!important}
+#import-preview-dialog .import-audit-table tbody tr:hover td{background:#edf3f8!important}
+#import-preview-dialog .audit-rownum{color:#4b6077!important;font-weight:700!important}
+#import-preview-dialog .audit-primary{color:#1f354d!important}
+#import-preview-dialog .audit-reason{color:#40566e!important}
+#import-preview-dialog .audit-reason.bad{color:#9e2631!important}
+#import-preview-dialog .audit-status{background:#e3f2e9!important;color:#155c3c!important;border:1px solid #b9ddc8!important}
+#import-preview-dialog .audit-status.warning,#import-preview-dialog .audit-status.update{background:#fff0d5!important;color:#754400!important;border:1px solid #e8c98e!important}
+#import-preview-dialog .audit-status.rejected{background:#fde8e8!important;color:#922b32!important;border:1px solid #e8bfc2!important}
+#import-preview-dialog .audit-status.duplicate{background:#e9edf2!important;color:#394c62!important;border:1px solid #cbd4de!important}
+#import-preview-dialog .import-preview-more{color:#40566e!important}
+#import-preview-dialog .import-preview-note{background:#f0f4f8!important;border:1px solid #c6d3e0!important;color:#344a61!important}
+#import-preview-dialog .import-preview-note b{color:#1d354e!important}
+#import-preview-dialog .import-wizard-actions{background:#fff!important;border-color:#d5dde6!important}
+#import-preview-dialog .import-wizard-actions .btn.secondary{background:#fff!important;color:#344a61!important;border:1px solid #aebdcd!important}
+#import-preview-dialog .import-wizard-actions .btn.primary{background:#245b91!important;border:1px solid #194a79!important;color:#fff!important}
+#import-preview-dialog .import-wizard-actions .btn:focus-visible{outline:3px solid #397dbb!important;outline-offset:3px!important}
+#import-preview-dialog .import-wizard-actions .btn:disabled{background:#e8edf2!important;color:#627286!important;border-color:#d2dae3!important;opacity:1!important;filter:none!important}
+@media(max-width:680px){#import-preview-dialog .import-audit-table{min-width:650px}#import-preview-dialog .import-audit-table th{font-size:9px}#import-preview-dialog .import-audit-table td{padding:11px 10px}}
