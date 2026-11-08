@@ -130,7 +130,7 @@ console.log('CSV, XML and spreadsheet safety tests OK');
             if result.returncode: print(result.stderr,file=sys.stderr); raise SystemExit(f"JavaScript inline {number}: error")
     if not (ROOT/"scripts/e2e.js").is_file(): raise SystemExit("Falta la suite E2E")
     e2e=(ROOT/"scripts/e2e.js").read_text(encoding="utf-8")
-    for token in ("#approve", "#catalog-add", "#product-edit", "#import-preview-confirm", "#export-all", "#backup-data", "#backup-file"):
+    for token in ("#approve", "#catalog-add", "[data-product-edit=", "#import-preview-confirm", "#export-all", "#backup-data", "#backup-file"):
         if token not in e2e: raise SystemExit("Falta cobertura E2E: "+token)
     print(f"OK: {len(p.ids)} IDs únicos, manifest válido, PWA offline, importación CSV con informes de errores, exportación XLSX, copias JSON y JavaScript.")
     if not node: print("Aviso: Node.js no disponible; sintaxis JS no comprobada.")
