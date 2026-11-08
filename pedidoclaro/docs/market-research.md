@@ -33,3 +33,13 @@ Bandeja de excepciones y revisión humana para un segmento vertical y un ERP con
 
 ## Criterio para cambiar o abandonar
 Si la mayoría ya está satisfecha con el ERP o una solución existente, o no se consigue ninguna empresa dispuesta a probar un piloto medible, cambiar el segmento o abandonar la idea.
+
+## Evidencia pública adicional revisada
+- [Axonflow — automatización de pedidos](https://axonflow.es/soluciones/pedidos) se dirige a distribuidores/fabricantes con más de 300 pedidos al mes y publica una referencia de precio desde 9.000 € sin IVA, según volumen y ERP. La página también describe integración con Business Central, Sage 200, a3ERP, Odoo y otros.
+- [PeasyOrders](https://peasyorders.com/es) presenta lectura de WhatsApp, email, notas de voz, PDF, Excel y fotos, validación contra catálogo y aprobación humana antes de enviar al ERP.
+- [evolio.ai](https://evolio.ai/es) presenta captura multicanal, extracción de líneas y sincronización con sistemas ERP, e incluye calculadora de ROI.
+
+Son afirmaciones y precios publicados por los propios proveedores, no auditorías independientes. Confirman que la idea genérica ya tiene competidores con una propuesta bastante completa.
+
+## Implicación estratégica
+No entrar a competir frontalmente en "IA que lee cualquier pedido y lo mete en cualquier ERP". El coste de integraciones, datos maestros, seguridad y soporte sería alto para un equipo nuevo. Solo seguir si entrevistas detectan una cuña concreta y accesible: un formato de pedido muy repetido, un ERP local concreto, un catálogo con equivalencias complejas o un proceso de excepción que los proveedores generalistas no cubran bien. Si no aparece una diferencia clara, abandonar este producto y no invertir en desarrollo.
