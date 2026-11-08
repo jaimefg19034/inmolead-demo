@@ -68,9 +68,15 @@ const { spawn } = require("node:child_process");
     await page.locator("#product-unit").fill("ud.");
     await page.locator("#product-price").fill("1");
     await page.locator("#save-product").click();
-    page.once("dialog", dialog => dialog.accept());
-    await page.locator("#backup-file").setInputFiles(backupPath);
-    await page.locator("#toast").filter({ hasText: "Copia restaurada correctamente." }).waitFor({ state: "visible" });
+    page.on("dialog", async dialog => { await dialog.accept(); });
+    const backupInput = page.locator("#backup-file");
+    await backupInput.setInputFiles(backupPath);
+    await page.waitForFunction(() => {
+      const saved = JSON.parse(localStorage.getItem("pedidoclaro-demo-v2") || "{}");
+      return Array.isArray(saved.orders) && saved.orders.length === 6 && Array.isArray(saved.catalog) && saved.catalog.some(product => product.sku === "E2E-CSV");
+    }, null, { timeout: 10000 });
+    await page.locator("#toast").waitFor({ state: "visible" });
+    assert.match(await page.locator("#toast").innerText(), /Copia restaurada correctamente/);
     await page.locator("#catalog-search").fill("E2E-POST");
     assert.equal(await page.locator("#catalog-list [data-product-edit]").count(), 0);
     await page.locator("#catalog-search").fill("E2E-CSV");
