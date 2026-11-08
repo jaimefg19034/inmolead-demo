@@ -192,7 +192,8 @@ async function catalogCsvImport(file){
  notify("Catálogo actualizado: "+added+" nuevos, "+updated+" actualizados y "+errors.length+" omitidos."+(errors.length?" Se descargó un CSV con los errores.":""));
 }
 
-function renderActivity(){$("activity-list").innerHTML=state.activity.length?state.activity.map(a=>'<div class="activity-row"><span class="activity-dot"></span><div><p>'+esc(a.message)+'</p><small>'+esc(a.time)+(a.id?" · "+esc(a.id):"")+'</small></div></div>').join(""):'<div class="empty-state"><div><div class="empty-icon">◷</div><b>Sin actividad todavía</b><p>Las acciones de esta demo aparecerán aquí.</p></div></div>';}
+function renderActivity(){$("activity-list").innerHTML=state.activity.length?state.activity.map(a=>'<div class="activity-row"><span class="activity-dot"></span><div><p>'+esc(a.message)+'</p><small>'+esc(a.time)+(a.id?" · "+esc(a.id):"")+'</small></div></div>').join(""):'<div class="empty-state"><div><div class="empty-icon">◷</div><b>Sin actividad todavía</b><p>Las acciones de esta demo aparecerán aquí.</p></div></div>';const exportButton=$("export-activity");if(exportButton)exportButton.disabled=!state.activity.length;}
+function exportActivityCsv(){if(!state.activity.length){notify("No hay actividad que exportar.");return;}const rows=[["fecha","accion","pedido"],...state.activity.map(a=>[a.time,a.message,a.id||""])];downloadFile("pedidoclaro-actividad.csv","\\ufeff"+rows.map(r=>r.map(safeCell).join(";")).join("\\r\\n"),"text/csv;charset=utf-8");notify("Historial exportado: "+state.activity.length+" acciones.");}
 
 function clientSummary(){
  const map=new Map();
@@ -497,7 +498,7 @@ $("import-preview-dialog").addEventListener("cancel",()=>{pendingImport=null;$("
 $("new-order").onclick=()=>{$("order-dialog").showModal();$("client-name").focus();};
 $("order-form").addEventListener("submit",e=>{if(e.submitter?.id!=="create-order")return;e.preventDefault();const client=$("client-name").value.trim();if(!client){notify("Introduce un cliente ficticio.");return;}$("order-dialog").close();addOrder(client,$("channel").value,[{name:"Material eléctrico surtido",sku:"MAT-SURT-01",qty:5,unit:"caja",price:22.5,issue:"Confirma la composición del surtido",checked:false},{name:"Accesorios de instalación",sku:"ACC-INST-02",qty:3,unit:"lote",price:14,issue:"Confirma el contenido del lote",checked:false}]);});
 $("parse-order").onclick=parseText;
-$("hero-import")?.addEventListener("click",()=>$("csv-file").click());$("export-all").onclick=()=>state.orders.length?exportCsv(state.orders):notify("No hay pedidos que exportar.");$("export-all-xlsx").onclick=()=>state.orders.length?exportOrdersXlsx(state.orders):notify("No hay pedidos que exportar.");$("clear-activity").onclick=()=>{if(!confirm("¿Limpiar el historial local?"))return;state.activity=[];persist();renderActivity();};
+$("hero-import")?.addEventListener("click",()=>$("csv-file").click());$("export-activity")?.addEventListener("click",exportActivityCsv);$("export-all").onclick=()=>state.orders.length?exportCsv(state.orders):notify("No hay pedidos que exportar.");$("export-all-xlsx").onclick=()=>state.orders.length?exportOrdersXlsx(state.orders):notify("No hay pedidos que exportar.");$("clear-activity").onclick=()=>{if(!confirm("¿Limpiar el historial local?"))return;state.activity=[];persist();renderActivity();};
 document.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>view(b.dataset.view));
 
 $("import-csv").onclick=()=>$("csv-file").click();
