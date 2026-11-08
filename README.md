@@ -70,3 +70,9 @@ Consulta `docs/importacion-y-copias.md` y `pedidoclaro/docs/roadmap.md`.
 - `.github/workflows/quality.yml`: controles automáticos en cada cambio.
 
 Todos los servicios usados en la demo son gratuitos y estáticos. El producto no está listo para producción.
+
+
+### v30 · Confirmación explícita de incidencias
+- Al confirmar una línea se registra fecha y hora local, se añade una entrada al historial y se muestra una notificación.
+- Las líneas confirmadas salen de la cola de revisión. Si se edita una línea o se vuelven a aplicar datos del catálogo, se reabre automáticamente para una nueva confirmación.
+- La fecha de confirmación se conserva en las copias JSON. La confirmación es manual y local; no equivale a una validación externa.
