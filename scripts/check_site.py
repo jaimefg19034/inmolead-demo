@@ -87,7 +87,7 @@ console.log("Order line limit tests OK");
         if result.returncode: print(result.stderr,file=sys.stderr); raise SystemExit("Pruebas del límite de líneas fallidas")
         if "orderLineLimitReached(groupMap.get" not in js or "orderLineLimitReached(groups.get(key).lines.length)" not in js: raise SystemExit("La vista previa y la importación no aplican el límite de 100 líneas")
         catalog_limit_start=js.index("function catalogCapacityReached(count){")
-        catalog_limit_end=js.index("\\nfunction searchKey",catalog_limit_start)
+        catalog_limit_end=js.index("\nfunction searchKey",catalog_limit_start)
         catalog_limit_helper=js[catalog_limit_start:catalog_limit_end]
         catalog_limit_tests=catalog_limit_helper+r"""
 const assert=require("node:assert/strict");
