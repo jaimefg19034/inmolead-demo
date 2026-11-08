@@ -37,6 +37,10 @@ def main():
     for token in ("pedidoclaro-demo-v2","function renderList","function renderDetail","function exportCsv","function parseText","function importCsvFile","function backupData","function restoreData","serviceWorker.register"):
         if token not in js: raise SystemExit("Falta funcionalidad JS: "+token)
     if "CACHE_NAME" not in sw or "PedidoClaro" not in manifest.get("name",""): raise SystemExit("PWA incompleta")
+    for token in ('id="view-catalog"', 'id="catalog-import"', 'id="catalog-export"', 'id="product-dialog"'):
+        if token not in source: raise SystemExit("Falta catálogo: "+token)
+    for token in ("catalogSeed", "function renderCatalog", "function catalogCsvExport", "function catalogCsvImport", "catalog-file"):
+        if token not in js: raise SystemExit("Falta funcionalidad catálogo: "+token)
     if "datos ficticios" not in source.lower() or "no contiene ia" not in source.lower(): raise SystemExit("Faltan avisos de demo")
     node=shutil.which("node")
     if node:
