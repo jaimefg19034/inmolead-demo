@@ -146,7 +146,7 @@ function validateCsvHeaders(headers){
  if(duplicates.length)throw new Error("Hay encabezados repetidos o ambiguos: "+duplicates.join(", ")+". Corrige el CSV antes de importarlo.");
 }
 
-function parseNumber(s){let v=String(s??"").trim().replace(/\s/g,"");if(v.includes(",")&&v.includes("."))v=v.replace(/\./g,"").replace(",",".");else v=v.replace(",",".");return Number(v);}
+function parseNumber(s){let v=String(s??"").trim().replace(/[\s\u00a0]/g,"").replace(/[€$£]/g,"");if(v.includes(",")&&v.includes(".")){if(v.lastIndexOf(",")>v.lastIndexOf("."))v=v.replace(/\./g,"").replace(",",".");else v=v.replace(/,/g,"");}else v=v.replace(",",".");return Number(v);}
 async function importCsvFile(file){
  if(!file)return;if(file.size>2*1024*1024)throw new Error("El CSV supera el límite de 2 MB.");
  const rows=csvParse(await file.text());if(rows.length<2)throw new Error("El CSV está vacío o solo contiene encabezados.");
