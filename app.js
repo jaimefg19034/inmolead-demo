@@ -129,6 +129,30 @@ async function catalogCsvImport(file){
 
 function renderActivity(){$("activity-list").innerHTML=state.activity.length?state.activity.map(a=>'<div class="activity-row"><span class="activity-dot"></span><div><p>'+esc(a.message)+'</p><small>'+esc(a.time)+(a.id?" · "+esc(a.id):"")+'</small></div></div>').join(""):'<div class="empty-state"><div><div class="empty-icon">◷</div><b>Sin actividad todavía</b><p>Las acciones de esta demo aparecerán aquí.</p></div></div>';}
 
+function clientSummary(){
+ const map=new Map();
+ for(const o of state.orders){
+  const key=String(o.client||"Cliente").trim().toLocaleLowerCase("es");
+  if(!map.has(key))map.set(key,{name:String(o.client||"Cliente").trim(),orders:0,total:0,approved:0,pending:0,issues:0,last:o.date||""});
+  const c=map.get(key);c.orders++;c.total+=sum(o);if(o.status==="approved")c.approved+=sum(o);if(["review","ready"].includes(o.status))c.pending++;c.issues+=issues(o);
+ }
+ return [...map.values()].sort((a,b)=>b.total-a.total);
+}
+function renderClients(){
+ const clients=clientSummary();
+ $("clients-count").textContent=clients.length+" clientes únicos · Calculado desde los pedidos locales";
+ $("clients-table-body").innerHTML=clients.length?clients.map(c=>'<tr><td><b>'+esc(c.name)+'</b></td><td>'+c.orders+'</td><td>'+c.pending+'</td><td>'+c.issues+'</td><td><b>'+money(c.total)+'</b></td><td>'+money(c.approved)+'</td></tr>').join(""):'<tr><td colspan="6"><div class="empty-state"><div><b>Sin clientes todavía</b><p>Importa o crea pedidos de ejemplo para generar el resumen.</p></div></div></td></tr>';
+}
+function renderAnalytics(){
+ const total=state.orders.length,approved=state.orders.filter(o=>o.status==="approved"),pending=state.orders.filter(o=>["review","ready"].includes(o.status)),rejected=state.orders.filter(o=>o.status==="rejected"),gross=state.orders.reduce((n,o)=>n+sum(o),0),approvedValue=approved.reduce((n,o)=>n+sum(o),0),avg=total?gross/total:0,rate=total?approved.length/total*100:0;
+ const metrics=[["Pedidos totales",total],["Valor total",money(gross)],["Valor aprobado",money(approvedValue)],["Ticket medio",money(avg)],["Pendientes",pending.length],["Tasa aprobada",rate.toFixed(1)+"%"]];
+ $("analytics-kpis").innerHTML=metrics.map(m=>'<article class="stat"><div class="stat-top">'+esc(m[0])+'</div><strong>'+esc(m[1])+'</strong><small>Datos locales de la demo</small></article>').join("");
+ $("analytics-status").innerHTML='<div class="analytics-status-row"><span>Por revisar / listos</span><b>'+pending.length+'</b></div><div class="analytics-status-row"><span>Aprobados</span><b>'+approved.length+'</b></div><div class="analytics-status-row"><span>Descartados</span><b>'+rejected.length+'</b></div><div class="analytics-status-row"><span>Incidencias abiertas</span><b>'+state.orders.reduce((n,o)=>n+issues(o),0)+'</b></div>';
+ const top=clientSummary().slice(0,5);
+ $("analytics-top-clients").innerHTML=top.length?top.map((c,i)=>'<div class="analytics-top-row"><span><i>'+(i+1)+'</i><b>'+esc(c.name)+'</b></span><strong>'+money(c.total)+'</strong></div>').join(""):'<p class="muted">Todavía no hay datos para mostrar.</p>';
+}
+
+
 function downloadFile(name,content,type){const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 function csvParse(text){
  const first=(text.split(/\r?\n/,1)[0]||"");let delimiter=";",best=-1;
@@ -225,10 +249,10 @@ async function restoreData(file){
  state.orders=cleanOrders;state.catalog=cleanCatalog;state.orders.forEach(o=>{if(!["approved","rejected"].includes(o.status))o.status=derived(o);});state.activity=cleanActivity;state.counter=Math.max(Number(data.counter)||0,...cleanOrders.map(o=>Number(String(o.id).replace("PD-",""))||0));state.selected=state.orders[0]?.id||null;persist();render();notify("Copia restaurada correctamente.");
 }
 
-function render(){renderList();renderCatalog();renderActivity();}
+function render(){renderList();renderCatalog();renderActivity();renderClients();renderAnalytics();}
 function addOrder(client,channel,lines){state.counter=Math.max(state.counter,...state.orders.map(o=>Number(o.id.slice(3))||0))+1;const o={id:"PD-"+state.counter,client,date:"Ahora",channel,status:"review",lines};o.status=derived(o);state.orders.unshift(o);state.selected=o.id;log("Creó el pedido ficticio "+o.id,o.id);render();notify("Pedido ficticio añadido.");}
 function parseText(){const raw=$("raw-order").value.trim();if(!raw){notify("Pega un pedido de ejemplo primero.");return;}const client=(raw.match(/cliente\s*:\s*([^\n;]+)/i)||[])[1]?.trim()||"Cliente de texto",rules=[{re:/(\d+)\s*(?:cajas?\s+de\s+)?tornillos?/i,name:"Tornillo inox A2 5×50",sku:"TOR-INOX-550",unit:"caja",price:18.5},{re:/(\d+)\s*(?:unidades?|uds?\.?|ud\.?)\s+de\s+silicona/i,name:"Silicona neutra blanca 300 ml",sku:"SIL-NEU-BLA",unit:"ud.",price:4.1},{re:/(\d+)\s*(?:cajas?\s+de\s+)?tacos?/i,name:"Taco nylon universal 8 mm",sku:"TACO-UNIV-08",unit:"caja",price:7.2},{re:/(\d+)\s*(?:unidades?|uds?\.?|ud\.?)\s+de\s+discos?\s+de\s+corte/i,name:"Disco corte inox 115 mm",sku:"DIS-INOX-115",unit:"ud.",price:2.8}],lines=rules.flatMap(r=>{const m=raw.match(r.re);if(!m)return[];const product=state.catalog.find(p=>p.sku.toLocaleLowerCase("es")===r.sku.toLocaleLowerCase("es"));return [{name:product?.name||r.name,sku:r.sku,qty:+m[1],unit:product?.unit||r.unit,price:product?.price??r.price,issue:product?"Confirma la referencia y cantidad extraída":"Referencia no encontrada en el catálogo",checked:false}];});if(!lines.length){notify("No reconozco artículos. Prueba con tornillos, tacos o silicona.");return;}addOrder(client,"Texto pegado (parser local)",lines);$("raw-order").value="";}
-function view(name){document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id==="view-"+name));document.querySelectorAll(".navbtn").forEach(b=>b.classList.toggle("active",b.dataset.view===name));$("crumb").textContent={orders:"Bandeja de pedidos",catalog:"Catálogo de productos",activity:"Actividad reciente",guide:"Cómo funciona"}[name];if(name==="catalog")renderCatalog();}
+function view(name){document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id==="view-"+name));document.querySelectorAll(".navbtn").forEach(b=>b.classList.toggle("active",b.dataset.view===name));$("crumb").textContent={orders:"Bandeja de pedidos",catalog:"Catálogo de productos",clients:"Clientes",analytics:"Analítica",activity:"Actividad reciente",guide:"Cómo funciona"}[name];if(name==="catalog")renderCatalog();if(name==="clients")renderClients();if(name==="analytics")renderAnalytics();}
 $("search").oninput=renderList;$("filter").onchange=renderList;
 
 $("catalog-search").oninput=renderCatalog;
