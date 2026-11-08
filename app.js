@@ -105,6 +105,7 @@ async function catalogCsvImport(file){
  const rows=csvParse(await file.text());if(rows.length<2)throw new Error("El CSV está vacío o solo contiene encabezados.");
  if(rows.length>5001)throw new Error("Máximo 5.000 productos por importación.");
  const originalHeaders=rows.shift(),headers=originalHeaders.map(normHeader),idx=(...names)=>headers.findIndex(h=>names.includes(h));
+ validateCsvHeaders(originalHeaders);
  const cols={sku:idx("referencia","sku","codigo","codigo_producto"),name:idx("producto","product","descripcion","nombre"),unit:idx("unidad","unit","ud"),price:idx("precio_unitario","precio","price","unit_price")};
  const missing=["sku","name","price"].filter(k=>cols[k]<0);if(missing.length)throw new Error("Faltan columnas: "+missing.join(", ")+".");
  let added=0,updated=0;const errors=[],seenSkus=new Set();
@@ -137,12 +138,21 @@ function csvParse(text){
  row.push(cell.replace(/\r$/,""));if(row.some(x=>x.trim()))rows.push(row);if(quoted)throw new Error("El CSV contiene comillas sin cerrar.");return rows;
 }
 function normHeader(s){return String(s||"").trim().toLocaleLowerCase("es").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[\s-]+/g,"_");}
+function validateCsvHeaders(headers){
+ const normalized=headers.map(normHeader),empty=normalized.findIndex(h=>!h);
+ if(empty>=0)throw new Error("La columna "+(empty+1)+" no tiene nombre. Corrige el encabezado.");
+ const seen=new Set(),duplicates=[];
+ for(const h of normalized){if(seen.has(h)&&!duplicates.includes(h))duplicates.push(h);seen.add(h);}
+ if(duplicates.length)throw new Error("Hay encabezados repetidos o ambiguos: "+duplicates.join(", ")+". Corrige el CSV antes de importarlo.");
+}
+
 function parseNumber(s){let v=String(s??"").trim().replace(/\s/g,"");if(v.includes(",")&&v.includes("."))v=v.replace(/\./g,"").replace(",",".");else v=v.replace(",",".");return Number(v);}
 async function importCsvFile(file){
  if(!file)return;if(file.size>2*1024*1024)throw new Error("El CSV supera el límite de 2 MB.");
  const rows=csvParse(await file.text());if(rows.length<2)throw new Error("El CSV está vacío o solo contiene encabezados.");
  if(rows.length>1001)throw new Error("Máximo 1.000 líneas por importación.");
  const originalHeaders=rows.shift(),headers=originalHeaders.map(normHeader),idx=(...names)=>headers.findIndex(h=>names.includes(h));
+ validateCsvHeaders(originalHeaders);
  const cols={order:idx("pedido","order_id","id_pedido","numero_pedido"),client:idx("cliente","customer","empresa"),sku:idx("referencia","sku","codigo","codigo_producto"),name:idx("producto","product","descripcion","nombre"),qty:idx("cantidad","qty","quantity"),unit:idx("unidad","unit","ud"),price:idx("precio_unitario","precio","price","unit_price")};
  const required=["client","sku","name","qty","price"];const missing=required.filter(k=>cols[k]<0);
  if(missing.length)throw new Error("Faltan columnas obligatorias: "+missing.join(", ")+". Descarga la plantilla para ver el formato.");
