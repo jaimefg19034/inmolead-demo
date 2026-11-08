@@ -187,7 +187,8 @@ function renderClients(){
  $("clients-overview").innerHTML=[["Clientes activos",clients.length,"♙"],["Pedidos recibidos",orders,"▤"],["Valor medio por pedido",money(avg),"↗"]].map((m,i)=>'<article class="client-kpi"><span class="client-kpi-icon">'+m[2]+'</span><div><small>'+m[0]+'</small><strong>'+m[1]+'</strong></div></article>').join("");
  const max=Math.max(1,...clients.map(c=>c.total));
  $("clients-highlights").innerHTML=clients.length?clients.slice(0,3).map((c,i)=>'<article class="client-highlight"><div class="client-avatar">'+esc(c.name.trim().slice(0,1).toUpperCase())+'</div><div class="client-highlight-main"><small>CLIENTE '+String(i+1).padStart(2,"0")+'</small><b>'+esc(c.name)+'</b><span>'+c.orders+' pedidos · '+c.pending+' pendientes</span></div><strong>'+money(c.total)+'</strong><div class="client-progress"><i style="width:'+Math.max(3,c.total/max*100)+'%"></i></div></article>').join(""):'<div class="empty-state"><div><b>Sin clientes todavía</b><p>Importa o crea pedidos de ejemplo para generar el resumen.</p></div></div>';
- $("clients-table-body").innerHTML=clients.length?clients.map(c=>'<tr><td><div class="client-name-cell"><span class="client-mini-avatar">'+esc(c.name.trim().slice(0,1).toUpperCase())+'</span><b>'+esc(c.name)+'</b></div></td><td>'+c.orders+'</td><td><span class="metric-chip '+(c.pending?"pending":"neutral")+'">'+c.pending+'</span></td><td>'+c.issues+'</td><td><b>'+money(c.total)+'</b></td><td><b class="approved-value">'+money(c.approved)+'</b></td></tr>').join(""):'<tr><td colspan="6">Todavía no hay datos de clientes.</td></tr>';
+ $("clients-table-body").innerHTML=clients.length?clients.map(c=>'<tr><td><div class="client-name-cell"><span class="client-mini-avatar">'+esc(c.name.trim().slice(0,1).toUpperCase())+'</span><b>'+esc(c.name)+'</b></div></td><td>'+c.orders+'</td><td><span class="metric-chip '+(c.pending?"pending":"neutral")+'">'+c.pending+'</span></td><td>'+c.issues+'</td><td><b>'+money(c.total)+'</b></td><td><b class="approved-value">'+money(c.approved)+'</b></td><td><button class="iconbtn" data-client-rules="'+esc(c.name)+'">Reglas</button></td></tr>').join(""):'<tr><td colspan="7">Todavía no hay datos de clientes.</td></tr>';
+ $("clients-table-body").querySelectorAll("[data-client-rules]").forEach(b=>b.onclick=()=>openRulesDialog(b.dataset.clientRules));
 }
 function renderAnalytics(){
  const orders=state.orders,total=orders.length,approved=orders.filter(o=>o.status==="approved"),pending=orders.filter(o=>["review","ready"].includes(o.status)),rejected=orders.filter(o=>o.status==="rejected"),gross=orders.reduce((n,o)=>n+sum(o),0),approvedValue=approved.reduce((n,o)=>n+sum(o),0),avg=total?gross/total:0,openIssues=orders.reduce((n,o)=>n+issues(o),0);
@@ -448,17 +449,29 @@ function parseText(){const raw=$("raw-order").value.trim();if(!raw){notify("Pega
 function view(name){document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id==="view-"+name));document.querySelectorAll(".navbtn").forEach(b=>b.classList.toggle("active",b.dataset.view===name));$("crumb").textContent={orders:"Bandeja de pedidos",catalog:"Catálogo de productos",clients:"Clientes",analytics:"Analítica",activity:"Actividad reciente",guide:"Cómo funciona"}[name];if(name==="catalog")renderCatalog();if(name==="clients")renderClients();if(name==="analytics")renderAnalytics();}
 $("search").oninput=renderList;$("filter").onchange=renderList;$("sort-orders").onchange=renderList;$("export-filtered").onclick=()=>exportCsv(getVisibleOrders());$("export-filtered-xlsx").onclick=()=>exportOrdersXlsx(getVisibleOrders());
 $("select-visible").onchange=()=>{getVisibleOrders().forEach(o=>{if($("select-visible").checked)selectedOrderIds.add(o.id);else selectedOrderIds.delete(o.id);});updateBulkBar();$("order-list").querySelectorAll("[data-select-order]").forEach(x=>x.checked=selectedOrderIds.has(x.dataset.selectOrder));};
-function openRulesDialog(){
- $("rule-max-qty").value=state.rules.maxQuantity;
- $("rule-price-tolerance").value=state.rules.priceTolerancePct;
- $("rule-unknown-sku").value=state.rules.unknownSku;
- $("rule-duplicate-sku").value=state.rules.duplicateSku;
+let editingRulesClient=null;
+function openRulesDialog(clientName=null){
+ editingRulesClient=clientName?String(clientName).trim():null;
+ const rules=editingRulesClient?rulesForClient(editingRulesClient):state.rules;
+ $("rule-max-qty").value=rules.maxQuantity;
+ $("rule-price-tolerance").value=rules.priceTolerancePct;
+ $("rule-unknown-sku").value=rules.unknownSku;
+ $("rule-duplicate-sku").value=rules.duplicateSku;
+ $("rules-title").textContent=editingRulesClient?"Reglas · "+editingRulesClient:"Reglas generales";
+ $("rules-description").textContent=editingRulesClient?"Estas reglas se aplican solo a las importaciones de este cliente. Los valores iniciales proceden de las reglas generales.":"Ajusta las reglas predeterminadas para clientes sin una configuración propia.";
+ $("rules-reset-client").hidden=!editingRulesClient||!state.customerRules[clientKey(editingRulesClient)];
  $("rules-dialog").showModal();
 }
-$("open-rules").onclick=openRulesDialog;
-$("open-rules-queue").onclick=openRulesDialog;
+$("open-rules").onclick=()=>openRulesDialog();
+$("open-rules-queue").onclick=()=>openRulesDialog();
 $("rules-cancel").onclick=()=>$("rules-dialog").close();
-$("rules-form").addEventListener("submit",e=>{if(e.submitter?.id!=="rules-save")return;e.preventDefault();const max=Number($("rule-max-qty").value),tolerance=Number($("rule-price-tolerance").value);if(!Number.isInteger(max)||max<1||max>999999||!Number.isFinite(tolerance)||tolerance<0||tolerance>100){notify("Revisa los límites de las reglas.");return;}state.rules={maxQuantity:max,priceTolerancePct:tolerance,unknownSku:$("rule-unknown-sku").value==="block"?"block":"review",duplicateSku:$("rule-duplicate-sku").value==="block"?"block":"review"};persist();$("rules-dialog").close();log("Actualizó las reglas de validación");render();notify("Reglas guardadas. Se aplicarán a las próximas importaciones.");});
+$("rules-reset-client").onclick=()=>{
+ if(!editingRulesClient)return;
+ delete state.customerRules[clientKey(editingRulesClient)];
+ persist();$("rules-dialog").close();log("Restableció las reglas generales para "+editingRulesClient);render();
+ notify("Este cliente vuelve a utilizar las reglas generales.");
+};
+$("rules-form").addEventListener("submit",e=>{if(e.submitter?.id!=="rules-save")return;e.preventDefault();const max=Number($("rule-max-qty").value),tolerance=Number($("rule-price-tolerance").value);if(!Number.isInteger(max)||max<1||max>999999||!Number.isFinite(tolerance)||tolerance<0||tolerance>100){notify("Revisa los límites de las reglas.");return;}const next=cleanRuleSet({maxQuantity:max,priceTolerancePct:tolerance,unknownSku:$("rule-unknown-sku").value==="block"?"block":"review",duplicateSku:$("rule-duplicate-sku").value==="block"?"block":"review"});if(editingRulesClient){state.customerRules[clientKey(editingRulesClient)]=next;log("Actualizó las reglas de "+editingRulesClient);}else{state.rules=next;log("Actualizó las reglas generales");}persist();$("rules-dialog").close();render();notify(editingRulesClient?"Reglas guardadas para "+editingRulesClient+".":"Reglas generales guardadas.");});
 
 $("bulk-clear").onclick=()=>{selectedOrderIds.clear();renderList();};
 $("bulk-export-csv").onclick=()=>exportCsv(state.orders.filter(o=>selectedOrderIds.has(o.id)));
