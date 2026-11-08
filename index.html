@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#101b2d"><meta name="description" content="PedidoClaro: bandeja de revisión y preparación de pedidos B2B.">
-<title>PedidoClaro — Operaciones B2B</title><link rel="stylesheet" href="styles.css?v=11"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>PedidoClaro — Operaciones B2B</title><link rel="stylesheet" href="styles.css?v=12"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml">
 </head>
 <body>
 <div class="app">
@@ -84,13 +84,14 @@
 </main>
 </div>
 <dialog id="import-preview-dialog" aria-labelledby="import-preview-title">
- <h2 id="import-preview-title">Vista previa de importación</h2>
- <p class="muted" id="import-preview-file"></p>
+ <div class="import-wizard-top"><div class="import-wizard-mark">PC</div><div><span class="import-wizard-kicker">CENTRO DE IMPORTACIÓN · PEDIDOCLARO</span><h2 id="import-preview-title">Informe de calidad</h2><p id="import-preview-file" class="muted"></p></div><span class="import-step">PASO 2 DE 3</span></div>
+ <div class="import-wizard-progress"><i></i><i class="active"></i><i></i></div>
  <div class="import-preview-summary" id="import-preview-summary"></div>
+ <div id="import-preview-mapping"></div>
  <div id="import-preview-content"></div>
  <p class="import-preview-more" id="import-preview-more"></p>
  <div class="import-preview-note" id="import-preview-note"></div>
- <div class="modal-actions"><button class="btn secondary" type="button" id="import-preview-cancel">Cancelar</button><button class="btn primary" type="button" id="import-preview-confirm">Validar e importar</button></div>
+ <div class="modal-actions import-wizard-actions"><button class="btn secondary" type="button" id="import-preview-cancel">Volver</button><button class="btn secondary" type="button" id="import-preview-errors" disabled>↓ Descargar errores</button><button class="btn primary" type="button" id="import-preview-confirm">Importar datos</button></div>
 </dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div><input class="file-input" id="csv-file" type="file" accept=".csv,text/csv"><input class="file-input" id="backup-file" type="file" accept=".json,application/json"><input class="file-input" id="catalog-file" type="file" accept=".csv,text/csv">
 <dialog id="order-dialog"><form method="dialog" id="order-form"><h2>Simular pedido entrante</h2><p class="muted">Se añadirá un pedido ficticio a tu bandeja local.</p><label>Nombre del cliente<input class="field" id="client-name" value="Suministros La Estrella" required maxlength="90"></label><label>Canal de entrada<select class="field" id="channel"><option>Email (simulado)</option><option>PDF adjunto (simulado)</option><option>Excel (simulado)</option><option>WhatsApp (simulado)</option></select></label><div class="modal-actions"><button class="btn secondary" value="cancel">Cancelar</button><button class="btn primary" id="create-order" value="default">Crear pedido</button></div></form></dialog>
