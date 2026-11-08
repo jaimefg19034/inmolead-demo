@@ -1,36 +1,53 @@
 # PedidoClaro
 
-**Prototipo de validación para distribuidores mayoristas B2B.**
+**Prototipo gratuito de validación para distribuidores mayoristas B2B.**
 
 🌐 **Demo:** https://jaimefg19034.github.io/inmolead-demo/
 
-PedidoClaro explora cómo preparar, revisar y exportar pedidos que llegan en distintos formatos antes de introducirlos en un ERP.
+PedidoClaro explora cómo preparar, revisar y exportar pedidos antes de introducirlos en un ERP.
 
-## Funciones de la demo
-- Bandeja con búsqueda y filtros por estado.
+## Funciones disponibles en la demo
+- Bandeja de pedidos con búsqueda y filtros.
 - Revisión de líneas, cantidades y precios.
-- Confirmación de incidencias antes de aprobar.
+- Confirmación de incidencias y bloqueo de aprobación si quedan pendientes.
 - Aprobación y descarte locales.
 - Exportación CSV de un pedido o de toda la bandeja.
-- Creación de pedidos ficticios y parser local muy limitado para texto.
-- Historial de acciones de esta sesión de navegador.
-- Guardado en localStorage.
-- Diseño responsive, navegación accesible y controles de teclado.
+- **Importación CSV** con validación básica, agrupación por pedido y detección de importaciones duplicadas.
+- Plantilla CSV descargable.
+- **Copia de seguridad y restauración JSON** de pedidos e historial.
+- Parser de texto local muy limitado para algunos ejemplos.
+- Historial de acciones y guardado local.
+- **PWA / modo sin conexión**: el navegador guarda los archivos de la aplicación tras la primera visita.
+- Diseño responsive y controles automáticos en GitHub Actions.
 
-## Limitaciones importantes
-**No hay IA, OCR, conexión con correo, WhatsApp, API ni ERP.** No procesa PDFs o Excel reales. Los datos de muestra y los cambios se guardan únicamente en el navegador. Aprobar un pedido solo cambia su estado local. No introducir datos de clientes ni información comercial real.
+## Formato CSV
+Columnas obligatorias: `cliente`, `referencia`, `producto`, `cantidad`, `precio_unitario`. Opcionales: `pedido`, `unidad`. Se admiten separadores punto y coma, coma o tabulador. Cada línea importada queda pendiente de revisión humana. La plantilla dentro de la aplicación muestra un ejemplo.
+
+## Cómo instalar en iPhone
+1. Abre la demo en Safari.
+2. Pulsa Compartir.
+3. Selecciona **Añadir a pantalla de inicio**.
+4. Abre PedidoClaro desde el nuevo icono.
+
+La disponibilidad de funciones de instalación y modo sin conexión depende del navegador y de su versión. En otros dispositivos, utiliza el menú del navegador si aparece la opción de instalar.
+
+## Límites y privacidad
+**No hay IA, OCR, lectura de PDF/Excel, conexión con correo, WhatsApp, API ni ERP.** No se suben ficheros a un backend. Pedidos, historial y copias se procesan localmente en el navegador. No existe sincronización entre dispositivos, cuentas ni recuperación de contraseñas. Si borras los datos del navegador sin exportar una copia, puedes perder la información.
+
+Usa solo datos inventados o anonimizados. No introduzcas información personal, datos de clientes, credenciales ni precios confidenciales. Aprobar un pedido solo cambia su estado local; no se comunica con ningún sistema externo. Este prototipo no está preparado para gestionar pedidos reales ni para uso comercial.
 
 ## Validación antes de construir más
-La categoría ya tiene competidores. La hipótesis solo merece seguir si un segmento concreto tiene una necesidad no resuelta. El plan es entrevistar a 10 distribuidores del mismo sector, medir pedidos/mes, minutos de registro, errores y ERP, y buscar un piloto limitado antes de desarrollar integraciones.
+La categoría tiene competidores. La hipótesis solo merece seguir si un segmento concreto tiene una necesidad no resuelta. El siguiente paso es entrevistar a 10 distribuidores de un mismo sector, medir pedidos/mes, minutos de registro, errores y ERP utilizado, y buscar un piloto limitado antes de desarrollar integraciones.
 
-Consulta `pedidoclaro/docs/` para investigación, entrevistas, outreach y roadmap.
+Consulta `docs/importacion-y-copias.md` y `pedidoclaro/docs/roadmap.md`.
 
 ## Desarrollo
 - `index.html`: estructura y vistas.
 - `styles.css`: diseño responsive.
-- `app.js`: lógica de demostración en navegador.
-- `scripts/check_site.py`: validaciones estáticas y sintaxis JS.
+- `app.js`: lógica de la aplicación en navegador.
+- `manifest.webmanifest`, `sw.js`, `icon.svg`: instalación y caché offline.
+- `scripts/check_site.py`: validaciones estáticas y sintaxis JavaScript.
 - `.github/workflows/pages.yml`: publicación de GitHub Pages.
 - `.github/workflows/quality.yml`: controles automáticos en cada cambio.
 
-Los pedidos de ejemplo no son datos reales. El producto no está listo para uso comercial.
+Todos los servicios usados en la demo son gratuitos y estáticos. El producto no está listo para producción.
