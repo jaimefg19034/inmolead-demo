@@ -31,7 +31,7 @@ def main():
     manifest=json.loads((ROOT/"manifest.webmanifest").read_text(encoding="utf-8"))
     p=PageParser();p.feed(source)
     if p.lang!="es" or "PedidoClaro" not in "".join(p.title): raise SystemExit("Idioma o título incorrecto")
-    required_ids=['id="order-list"','id="detail-panel"','id="parse-order"','id="activity-list"','id="view-guide"','id="import-csv"','id="backup-data"','id="restore-data"','id="export-all-xlsx"','id="catalog-export-xlsx"','id="catalog-template"','id="import-preview-confirm"','id="import-preview-content"']
+    required_ids=['id="order-list"','id="detail-panel"','id="parse-order"','id="activity-list"','id="view-guide"','id="import-csv"','id="backup-data"','id="restore-data"','id="export-all-xlsx"','id="catalog-export-xlsx"','id="catalog-template"','id="import-preview-confirm"','id="import-preview-content"','id="view-clients"','id="view-analytics"','id="clients-table-body"','id="analytics-kpis"','id="analytics-status"','id="analytics-top-clients"']
     missing=[x for x in required_ids if x not in source]
     if missing: raise SystemExit("Faltan controles: "+", ".join(missing))
     for token in ("pedidoclaro-demo-v2","function renderList","function renderDetail","function exportCsv", "function zipStore", "function downloadXlsx", "function exportOrdersXlsx", "function exportCatalogXlsx", "function downloadImportErrors", "function validateCsvHeaders", "async function showImportPreview", "import-preview-dialog", "function parseNumber", "lastIndexOf(",")", "encabezados repetidos o ambiguos", "seenSkus=new Set()", "SKU duplicado dentro del mismo CSV", "Número de columnas distinto al encabezado","function parseText","function importCsvFile", "pedidoclaro-errores-pedidos.csv", "pedidoclaro-errores-catalogo.csv","function backupData","function restoreData","serviceWorker.register"):
@@ -41,6 +41,8 @@ def main():
         if token not in source: raise SystemExit("Falta catálogo: "+token)
     for token in ("catalogSeed", "function renderCatalog", "function catalogCsvExport", "function catalogCsvImport", "catalog-file", "catalogProduct", "Precio distinto al catálogo", "data-catalog-apply", "data-product-edit", "editingCatalogSku", "duplicateSku", "Referencia repetida en el pedido", "product?.price??r.price", "const importBatch=", 'sourceRef=get("order")||"Importación sin número"', "sourceId:key", "v>999999", "const orderIds=new Set(),sourceIds=new Set()", "catalogSkus=new Set()", "referencias SKU duplicadas"):
         if token not in js: raise SystemExit("Falta funcionalidad catálogo: "+token)
+    for token in ('data-view="clients"','data-view="analytics"'):
+        if token not in source: raise SystemExit("Falta navegación: "+token)
     if "datos ficticios" not in source.lower() or "no contiene ia" not in source.lower(): raise SystemExit("Faltan avisos de demo")
     node=shutil.which("node")
     if node:
