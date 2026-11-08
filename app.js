@@ -92,7 +92,7 @@ async function importCsvFile(file){
  rows.forEach((r,i)=>{const get=k=>cols[k]<0?"":String(r[cols[k]]??"").trim(),client=get("client"),sku=get("sku"),name=get("name"),qty=parseNumber(get("qty")),price=parseNumber(get("price")),unit=get("unit")||"ud.",source=get("order")||("Fila "+(i+2));
  if(!client||!sku||!name||!get("qty")||!get("price")||!Number.isInteger(qty)||qty<1||qty>999999||!Number.isFinite(price)||price<0||price>999999){invalid++;return;}
  const key=source+"|"+client;if(!groups.has(key))groups.set(key,{sourceId:key,sourceRef:source,client,lines:[]});
- groups.get(key).lines.push({name:name.slice(0,160),sku:sku.slice(0,80),qty,unit:unit.slice(0,30),price:Math.round(price*100)/100,issue:"Importada desde CSV: confirma referencia, cantidad y precio",checked:false});
+ const catalogProduct=state.catalog.find(p=>p.sku.toLocaleLowerCase("es")===sku.toLocaleLowerCase("es"));const roundedPrice=Math.round(price*100)/100;const issue=!catalogProduct?"Referencia no encontrada en el catálogo: valida el SKU":Math.abs(catalogProduct.price-roundedPrice)>0.01?"Precio distinto al catálogo (referencia: "+money(catalogProduct.price)+")":"Importada: confirma cantidad y producto";groups.get(key).lines.push({name:name.slice(0,160),sku:sku.slice(0,80),qty,unit:unit.slice(0,30),price:roundedPrice,issue,checked:false});
  });
  if(!groups.size)throw new Error("No se ha encontrado ninguna línea válida. Revisa cantidades, precios y columnas.");
  let added=0,skipped=0;
