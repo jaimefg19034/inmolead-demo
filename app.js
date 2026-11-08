@@ -321,7 +321,7 @@ function auditImportRows(rows,kind){
     seen.add(normalized);
     if(state.catalog.some(p=>p.sku.toLocaleLowerCase("es")===normalized)){audit.updated++;item.status="update";item.reason="Actualizará una referencia existente";}
     else{audit.added++;item.reason="Añadirá una referencia nueva";}
-    audit.valid++;
+    audit.valid++;audit.clean++;
    }else{item.status="rejected";audit.rejected++;audit.errors.push({row:item.row,reason:item.reason,values:r});}
    audit.rows.push(item);
   }
