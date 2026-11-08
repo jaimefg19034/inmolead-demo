@@ -182,9 +182,9 @@ function downloadXlsx(filename,sheetName,headers,records,widths,numericCols=[],m
  notify("Excel generado: "+records.length+" filas.");
 }
 function exportOrdersXlsx(orders){
- const heads=["Pedido","Cliente","Estado","Canal","Referencia","Producto","Cantidad","Unidad","Precio unitario (€)","Importe (€)","Revisión"];
- const rows=orders.flatMap(o=>o.lines.map(l=>[o.id,o.client,labels[o.status],o.channel,l.sku,l.name,l.qty,l.unit,l.price,Math.round(l.qty*l.price*100)/100,l.checked&&!l.issue?"Revisada":l.issue||"Pendiente"]));
- downloadXlsx("pedidoclaro-pedidos.xlsx","Pedidos",heads,rows,[16,25,19,22,20,34,12,14,20,18,42],[6],[8,9]);
+ const heads=["Pedido","Cliente","Estado","Canal","Referencia","Producto","Cantidad","Unidad","Precio unitario (€)","Importe (€)","Revisión","Notas internas"];
+ const rows=orders.flatMap(o=>o.lines.map(l=>[o.id,o.client,labels[o.status],o.channel,l.sku,l.name,l.qty,l.unit,l.price,Math.round(l.qty*l.price*100)/100,l.checked&&!l.issue?"Revisada":l.issue||"Pendiente",o.notes||""]));
+ downloadXlsx("pedidoclaro-pedidos.xlsx","Pedidos",heads,rows,[16,25,19,22,20,34,12,14,20,18,42,48],[6],[8,9]);
 }
 function exportCatalogXlsx(){
  const heads=["Referencia / SKU","Producto","Unidad","Precio de referencia (€)"];
@@ -192,7 +192,7 @@ function exportCatalogXlsx(){
  downloadXlsx("pedidoclaro-catalogo.xlsx","Catálogo",heads,rows,[24,38,16,25],[],[3]);
 }
 
-function exportCsv(orders){const heads=["pedido","cliente","estado","canal","referencia","producto","cantidad","unidad","precio_unitario","importe","revision"],rows=[heads,...orders.flatMap(o=>o.lines.map(l=>[o.id,o.client,labels[o.status],o.channel,l.sku,l.name,l.qty,l.unit,l.price.toFixed(2),(l.qty*l.price).toFixed(2),l.checked&&!l.issue?"revisada":l.issue||"pendiente"]))],blob=new Blob(["\ufeff"+rows.map(r=>r.map(safeCell).join(";")).join("\r\n")],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="pedidoclaro-"+(orders.length===1?orders[0].id.toLowerCase():"bandeja")+".csv";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);notify("CSV generado con "+orders.length+" pedido(s).");}
+function exportCsv(orders){const heads=["pedido","cliente","estado","canal","referencia","producto","cantidad","unidad","precio_unitario","importe","revision","notas_internas"],rows=[heads,...orders.flatMap(o=>o.lines.map(l=>[o.id,o.client,labels[o.status],o.channel,l.sku,l.name,l.qty,l.unit,l.price.toFixed(2),(l.qty*l.price).toFixed(2),l.checked&&!l.issue?"revisada":l.issue||"pendiente",o.notes||""]))],blob=new Blob(["\ufeff"+rows.map(r=>r.map(safeCell).join(";")).join("\r\n")],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="pedidoclaro-"+(orders.length===1?orders[0].id.toLowerCase():"bandeja")+".csv";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);notify("CSV generado con "+orders.length+" pedido(s).");}
 
 function renderCatalog(){
  const q=($("catalog-search")?.value||"").trim().toLocaleLowerCase("es");
