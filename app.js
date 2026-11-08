@@ -438,9 +438,9 @@ function auditImportRows(rows,kind,fingerprint){
    else if(!sku)item.reason="Falta la referencia SKU";else if(sku.length>80)item.reason="La referencia SKU supera el máximo de 80 caracteres";else if(!name)item.reason="Falta el nombre del producto";else if(name.length>160)item.reason="El nombre del producto supera el máximo de 160 caracteres";else if(cols.unit>=0&&get("unit").length>30)item.reason="La unidad supera el máximo de 30 caracteres";else if(!get("price")||!Number.isFinite(price))item.reason="Precio vacío o no numérico";else if(price<0||price>999999)item.reason="Precio fuera del límite (0–999.999)";
    const normalized=sku.toLocaleLowerCase("es");
    if(!item.reason&&seen.has(normalized))item.reason="SKU duplicado dentro del mismo CSV";
+   if(!item.reason)seen.add(normalized);
    if(!item.reason&&!state.catalog.some(p=>p.sku.toLocaleLowerCase("es")===normalized)&&catalogCapacityReached(state.catalog.length+audit.added))item.reason="El catálogo no puede superar los 5.000 productos";
    if(!item.reason){
-    seen.add(normalized);
     if(state.catalog.some(p=>p.sku.toLocaleLowerCase("es")===normalized)){audit.updated++;item.status="update";item.reason="Actualizará una referencia existente";}
     else{audit.added++;item.reason="Añadirá una referencia nueva";}
     audit.valid++;audit.clean++;
