@@ -16,7 +16,7 @@ PedidoClaro explora cómo preparar, revisar y exportar pedidos antes de introduc
 - Plantilla CSV descargable.
 - **Catálogo local de productos**: alta y eliminación manual, búsqueda, importación CSV y exportación CSV.
 - El catálogo se incluye en las copias JSON y se restaura junto con los pedidos.
-- **Copia de seguridad y restauración JSON** de pedidos e historial.
+- **Copia de seguridad y restauración JSON** de pedidos, catálogo e historial, con rechazo de números de pedido, referencias SKU e importaciones de origen duplicadas.
 - Parser de texto local muy limitado para algunos ejemplos.
 - Historial de acciones y guardado local.
 - **PWA / modo sin conexión**: el navegador guarda los archivos de la aplicación tras la primera visita.
