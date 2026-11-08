@@ -1255,3 +1255,92 @@ dialog .btn.danger{color:#ffabb5;background:rgba(169,55,75,.12);border-color:rgb
  .stat,.panel,.client-kpi,.client-highlight,.guide-item{transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
  .stat:hover,.client-kpi:hover,.client-highlight:hover{transform:translateY(-3px)}
 }
+
+
+/* v36 · Bandeja rediseñada + analítica con gráficos visibles */
+.layout{grid-template-columns:minmax(0,.94fr) minmax(0,1.06fr);gap:18px;align-items:stretch}
+.layout>.panel:first-child{min-width:0}
+.layout>.panel:first-child .panel-head{display:flex;align-items:flex-start;flex-direction:column;gap:13px;padding:20px 20px 14px}
+.layout>.panel:first-child .panel-head>div:first-child{width:100%}
+.panel-actions{width:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.panel-actions .btn{min-width:0;white-space:nowrap;padding:9px 7px;font-size:9px;border-radius:9px}
+.filters{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px;padding:0 16px 15px;align-items:center}
+.select-visible-label{grid-column:1}
+.filters .rules-open-btn{grid-column:2;justify-self:stretch}
+.filters input[type=search]{grid-column:1/-1}
+.filters select{max-width:none;width:100%;min-width:0}
+.order-list{max-height:720px;padding:0 10px 8px}
+.order-card{display:grid;grid-template-columns:24px minmax(0,1fr);gap:8px;margin:7px 0;padding:13px 12px;border:1px solid rgba(132,171,218,.14);border-radius:12px;background:linear-gradient(120deg,rgba(20,42,68,.88),rgba(12,27,46,.9))}
+.order-card.selected{border-color:rgba(96,190,255,.55);background:linear-gradient(115deg,rgba(35,76,120,.62),rgba(14,35,58,.96));box-shadow:inset 3px 0 #62caff,0 8px 22px rgba(0,0,0,.13)}
+.order-select{align-self:start;margin-top:3px}
+.order-card-main{min-width:0}
+.order-row{align-items:flex-start;flex-wrap:wrap}
+.order-client{font-size:13px;line-height:1.4;margin:7px 0 6px;overflow-wrap:anywhere}
+.order-meta{align-items:center;flex-wrap:wrap;gap:5px 12px}
+.order-meta>span{font-size:9px;color:#9bb0ca}
+.order-meta strong{font-size:12px;color:#eff6ff;white-space:nowrap}
+.list-foot{margin:0 10px;padding:12px 5px;border-color:rgba(132,167,207,.16);color:#91a8c7}
+.bulk-bar{margin:0 14px 13px;padding:12px;border-radius:12px;display:flex;flex-wrap:wrap;gap:10px}
+.bulk-actions{display:flex;flex-wrap:wrap;gap:6px}
+.bulk-actions .btn{font-size:9px}
+#detail-panel{min-width:0}
+.detail-actions{flex-wrap:wrap}
+.detail-actions>div{display:flex;flex-wrap:wrap;gap:6px}
+.analytics-panel{background:linear-gradient(145deg,rgba(17,37,61,.97),rgba(10,25,43,.98));border-color:rgba(130,172,219,.2);box-shadow:0 16px 38px rgba(0,0,0,.18)}
+.analytics-panel .panel-head{border-color:rgba(145,177,216,.14);background:linear-gradient(180deg,rgba(47,77,114,.22),transparent)}
+.analytics-panel .panel-head h2{color:#f0f6ff}
+.analytics-panel .panel-head p{color:#9bb1cd}
+.analytics-panel .chart-kicker,.analytics-panel .chart-unit{color:#8fcaff}
+.analytics-panel .chart-unit{background:rgba(79,143,208,.13);border:1px solid rgba(123,178,231,.16)}
+.analytics-chart-body{color:#dceaff}
+.analytics-status-total strong,.analytics-status-legend b,.analytics-bar-label b,.rank-main b,.analytics-rank-row>strong{color:#edf5ff}
+.analytics-status-total span,.analytics-status-legend>div,.analytics-status-legend b small,.analytics-bar-label,.analytics-bar-label small,.rank-main small,.analytics-rank-row>strong small{color:#9bb1cd}
+.analytics-status-summary,.analytics-rank-row{border-color:rgba(145,177,216,.15)}
+.analytics-track{background:rgba(133,165,203,.17)}
+.rank-number{background:rgba(82,133,190,.18);color:#b7d5f5}
+.analytics-empty{background:rgba(9,23,40,.45);border-color:rgba(135,174,220,.23);color:#a7bdd8}
+.analytics-svg-wrap{margin-top:17px;padding:16px 17px 8px;border:1px solid rgba(130,172,219,.17);border-radius:14px;background:linear-gradient(130deg,rgba(32,61,94,.42),rgba(10,25,43,.5))}
+.analytics-svg-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:5px}
+.analytics-svg-head b{font-size:11px;color:#eaf3ff}
+.analytics-svg-head span{font-size:9px;color:#91a9c8}
+.analytics-status-svg{display:block;width:100%;height:auto;overflow:visible}
+.dashboard-chart-panel{background:linear-gradient(145deg,rgba(17,37,61,.97),rgba(10,25,43,.98));border-color:rgba(130,172,219,.2)}
+.dashboard-chart-panel .panel-head{background:linear-gradient(180deg,rgba(47,77,114,.22),transparent)}
+.dashboard-chart-panel .panel-head h2{color:#f0f6ff}
+.dashboard-chart-panel .panel-head p{color:#9bb1cd}
+.dashboard-chart-content .status-donut-hole{background:#10243b;box-shadow:0 0 0 1px rgba(150,190,235,.15),inset 0 3px 15px rgba(0,0,0,.25)}
+.dashboard-chart-content .status-donut-hole strong{color:#f4f8ff}
+.dashboard-chart-content .status-donut-hole small{color:#9bb1cd}
+.dashboard-chart-content .status-legend-row,.dashboard-chart-content .status-legend-row b{color:#dceaff}
+.dashboard-chart-content .status-legend-row b small{color:#9bb1cd}
+.dashboard-chart-content .dash-chart-title{color:#8fa9c9}
+.dashboard-chart-content .dash-metric-row span{color:#a8bdd8}
+.dashboard-chart-content .dash-metric-row b{color:#eaf3ff}
+.dashboard-chart-content .dash-track{background:rgba(133,165,203,.17)}
+.dashboard-client-total{color:#9bb1cd;border-color:rgba(145,177,216,.15)}
+.dashboard-client-total strong{color:#f0f6ff}
+.dash-client-row{border-color:rgba(145,177,216,.14)}
+.dash-client-rank{background:rgba(82,133,190,.18);color:#b7d5f5}
+.dash-client-info b,.dash-client-row>strong{color:#edf5ff}
+.dash-client-info span{color:#9bb1cd}
+.dash-client-track{background:rgba(133,165,203,.17)}
+.dashboard-empty{background:rgba(9,23,40,.45);border-color:rgba(135,174,220,.23);color:#a7bdd8}
+.dashboard-empty b{color:#eaf3ff}
+.dashboard-empty span{color:#9bb1cd}
+@media(max-width:1100px){
+ .layout{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)}
+ .panel-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:760px){
+ .layout{grid-template-columns:1fr}
+ .layout>.panel:first-child .panel-head{padding:16px 15px 12px}
+ .panel-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .filters{padding:0 13px 13px}
+ .order-list{max-height:390px}
+ .analytics-svg-wrap{padding:12px 10px 5px}
+}
+@media(max-width:420px){
+ .panel-actions .btn{font-size:8px;padding:8px 5px}
+ .order-card{padding:12px 10px}
+ .analytics-svg-head span{font-size:8px}
+}
