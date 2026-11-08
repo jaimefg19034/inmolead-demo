@@ -418,7 +418,17 @@ function renderReviewQueue(){
  const unique=new Set(findings.map(x=>x.order.id));
  $("review-queue-count").textContent=findings.length+" líneas · "+unique.size+" pedidos";
  $("review-queue-list").innerHTML=findings.length?findings.slice(0,6).map(x=>'<article class="review-queue-row"><span class="review-queue-mark">!</span><div class="review-queue-main"><div><b>'+esc(x.line.name||x.line.sku)+'</b><small>'+esc(x.order.id)+' · '+esc(x.order.client)+'</small></div><p>'+x.reasons.map(esc).join(" · ")+'</p></div><strong class="review-queue-value">'+money(x.line.qty*x.line.price)+'</strong><button class="btn secondary smallbtn" data-review-order="'+esc(x.order.id)+'">Revisar ↗</button></article>').join(""):'<div class="review-queue-empty"><span>✓</span><div><b>Todo al día</b><p>No hay líneas pendientes ni diferencias detectadas frente al catálogo local.</p></div></div>';
- $("review-queue-list").querySelectorAll("[data-review-order]").forEach(b=>b.onclick=()=>{state.selected=b.dataset.reviewOrder;view("orders");render();});
+ $("review-queue-list").querySelectorAll("[data-review-order]").forEach(b=>b.onclick=()=>{
+  const id=b.dataset.reviewOrder;
+  if(!state.orders.some(o=>o.id===id)){notify("No se encuentra ese pedido. Actualiza la cola.");render();return;}
+  state.selected=id;view("orders");render();
+  window.setTimeout(()=>{
+   const target=$("detail-panel");
+   target?.scrollIntoView({behavior:"smooth",block:"center"});
+   const heading=target?.querySelector(".detail-head h2");
+   if(heading){heading.setAttribute("tabindex","-1");heading.focus({preventScroll:true});}
+  },80);
+ });
 }
 function render(){renderList();renderCatalog();renderActivity();renderClients();renderAnalytics();renderDashboardCharts();renderReviewQueue();}
 function addOrder(client,channel,lines){state.counter=Math.max(state.counter,...state.orders.map(o=>Number(o.id.slice(3))||0))+1;const o={id:"PD-"+state.counter,client,date:"Ahora",channel,status:"review",lines};o.status=derived(o);state.orders.unshift(o);state.selected=o.id;log("Creó el pedido ficticio "+o.id,o.id);render();notify("Pedido ficticio añadido.");}
@@ -426,7 +436,15 @@ function parseText(){const raw=$("raw-order").value.trim();if(!raw){notify("Pega
 function view(name){document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id==="view-"+name));document.querySelectorAll(".navbtn").forEach(b=>b.classList.toggle("active",b.dataset.view===name));$("crumb").textContent={orders:"Bandeja de pedidos",catalog:"Catálogo de productos",clients:"Clientes",analytics:"Analítica",activity:"Actividad reciente",guide:"Cómo funciona"}[name];if(name==="catalog")renderCatalog();if(name==="clients")renderClients();if(name==="analytics")renderAnalytics();}
 $("search").oninput=renderList;$("filter").onchange=renderList;$("sort-orders").onchange=renderList;$("export-filtered").onclick=()=>exportCsv(getVisibleOrders());$("export-filtered-xlsx").onclick=()=>exportOrdersXlsx(getVisibleOrders());
 $("select-visible").onchange=()=>{getVisibleOrders().forEach(o=>{if($("select-visible").checked)selectedOrderIds.add(o.id);else selectedOrderIds.delete(o.id);});updateBulkBar();$("order-list").querySelectorAll("[data-select-order]").forEach(x=>x.checked=selectedOrderIds.has(x.dataset.selectOrder));};
-$("open-rules").onclick=()=>{$("rule-max-qty").value=state.rules.maxQuantity;$("rule-price-tolerance").value=state.rules.priceTolerancePct;$("rule-unknown-sku").value=state.rules.unknownSku;$("rule-duplicate-sku").value=state.rules.duplicateSku;$("rules-dialog").showModal();};
+function openRulesDialog(){
+ $("rule-max-qty").value=state.rules.maxQuantity;
+ $("rule-price-tolerance").value=state.rules.priceTolerancePct;
+ $("rule-unknown-sku").value=state.rules.unknownSku;
+ $("rule-duplicate-sku").value=state.rules.duplicateSku;
+ $("rules-dialog").showModal();
+}
+$("open-rules").onclick=openRulesDialog;
+$("open-rules-queue").onclick=openRulesDialog;
 $("rules-cancel").onclick=()=>$("rules-dialog").close();
 $("rules-form").addEventListener("submit",e=>{if(e.submitter?.id!=="rules-save")return;e.preventDefault();const max=Number($("rule-max-qty").value),tolerance=Number($("rule-price-tolerance").value);if(!Number.isInteger(max)||max<1||max>999999||!Number.isFinite(tolerance)||tolerance<0||tolerance>100){notify("Revisa los límites de las reglas.");return;}state.rules={maxQuantity:max,priceTolerancePct:tolerance,unknownSku:$("rule-unknown-sku").value==="block"?"block":"review",duplicateSku:$("rule-duplicate-sku").value==="block"?"block":"review"};persist();$("rules-dialog").close();log("Actualizó las reglas de validación");render();notify("Reglas guardadas. Se aplicarán a las próximas importaciones.");});
 
