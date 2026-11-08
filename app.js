@@ -84,7 +84,7 @@ $("edit-order-details")?.addEventListener("click",()=>{
  $("edit-order-channel").value=o.channel;
  $("edit-order-details-dialog").showModal();
 });
-$("edit-order-details-form").addEventListener("submit",e=>{
+$("edit-order-details-form").onsubmit=e=>{
  if(e.submitter?.id!=="save-order-details")return;
  e.preventDefault();
  if(locked||!state.orders.some(x=>x.id===o.id))return;
@@ -97,7 +97,7 @@ $("edit-order-details-form").addEventListener("submit",e=>{
  o.client=client;o.channel=channel;
  log("Editó la ficha de "+o.id+" ("+changes.join("; ")+")",o.id);
  $("edit-order-details-dialog").close();render();notify("Ficha del pedido actualizada.");
-});
+};
 $("approve")?.addEventListener("click",()=>{
  const pending=o.lines.map((line,index)=>({line,index})).filter(x=>!x.line.checked||String(x.line.issue||"").trim());
  if(pending.length){
@@ -128,7 +128,7 @@ $("add-order-line")?.addEventListener("click",()=>{
  $("order-line-qty").value="1";
  $("order-line-dialog").showModal();
 });
-$("order-line-form").addEventListener("submit",e=>{
+$("order-line-form").onsubmit=e=>{
  if(e.submitter?.id!=="save-order-line")return;
  e.preventDefault();
  if(locked||!state.orders.some(x=>x.id===o.id))return;
@@ -138,7 +138,7 @@ $("order-line-form").addEventListener("submit",e=>{
  o.lines.push({name:product.name,sku:product.sku,qty,unit:product.unit,price:product.price,issue:"Línea añadida desde catálogo: confirma los datos",checked:false,reviewedAt:""});
  o.status="review";log("Añadió "+sku+" al pedido "+o.id,o.id);
  $("order-line-dialog").close();render();notify("Línea añadida. Confirma sus datos antes de aprobar el pedido.");
-});
+};
 $("export-one")?.addEventListener("click",()=>exportCsv([o]));$("export-one-xlsx")?.addEventListener("click",()=>exportOrdersXlsx([o]));}
 function safeCell(v){let s=String(v??"");if(/^[\s]*[=+@\-]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';}
 function downloadImportErrors(filename,headers,errors){
