@@ -204,3 +204,18 @@ dialog{max-height:calc(100dvh - 32px);overflow:auto}
  #import-preview-dialog .modal-actions .btn{width:100%;font-size:10px;padding:10px 7px}
  .import-preview-table{max-height:250px}
 }
+
+/* Client and analytics views */
+.clients-table{min-width:760px}
+.analytics-kpis{grid-template-columns:repeat(3,minmax(0,1fr));margin:0 0 16px}
+.analytics-kpis .stat{min-width:0}
+.analytics-kpis .stat strong{font-size:clamp(18px,2vw,27px);overflow-wrap:anywhere}
+.analytics-status,.analytics-top{padding:7px 20px 18px}
+.analytics-status-row,.analytics-top-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 0;border-bottom:1px solid var(--line);font-size:12px}
+.analytics-status-row:last-child,.analytics-top-row:last-child{border-bottom:0}
+.analytics-status-row b,.analytics-top-row strong{font-variant-numeric:tabular-nums}
+.analytics-top-row>span{display:flex;align-items:center;gap:10px;min-width:0}
+.analytics-top-row i{display:grid;place-items:center;width:25px;height:25px;flex:0 0 25px;border-radius:8px;background:#edf2ff;color:#315eea;font-style:normal;font-size:10px;font-weight:800}
+.analytics-top-row b{overflow-wrap:anywhere}
+@media(max-width:760px){.analytics-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-layout{grid-template-columns:1fr}}
+@media(max-width:420px){.analytics-kpis .stat{padding:11px}.analytics-kpis .stat strong{font-size:19px}}
