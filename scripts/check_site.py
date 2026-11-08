@@ -74,6 +74,18 @@ def main():
         for name in ["app.js","sw.js"]:
             result=subprocess.run([node,"--check",str(ROOT/name)],text=True,capture_output=True)
             if result.returncode: print(result.stderr,file=sys.stderr); raise SystemExit(name+": error de sintaxis")
+        limit_start=js.index("function orderLineLimitReached(count){")
+        limit_end=js.index("\\nfunction searchKey",limit_start)
+        limit_helper=js[limit_start:limit_end]
+        limit_tests=limit_helper+r"""
+const assert=require("node:assert/strict");
+assert.equal(orderLineLimitReached(99),false);
+assert.equal(orderLineLimitReached(100),true);
+console.log("Order line limit tests OK");
+"""
+        result=subprocess.run([node,"-e",limit_tests],text=True,capture_output=True)
+        if result.returncode: print(result.stderr,file=sys.stderr); raise SystemExit("Pruebas del límite de líneas fallidas")
+        if "orderLineLimitReached(groupMap.get" not in js or "orderLineLimitReached(groups.get(key).lines.length)" not in js: raise SystemExit("La vista previa y la importación no aplican el límite de 100 líneas")
         xml_start=js.index("function xmlEsc(value){")
         xml_end=js.index("\nfunction excelCol",xml_start)
         xml_helper=js[xml_start:xml_end]
