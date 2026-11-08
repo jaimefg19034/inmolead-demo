@@ -81,3 +81,10 @@ Todos los servicios usados en la demo son gratuitos y estáticos. El producto no
 ### v31 · Claridad en la revisión
 - El botón de acción se identifica como «Confirmar incidencia» y las líneas revisadas muestran la fecha y hora de confirmación local.
 - La acción para volver a abrir una línea se denomina «Reabrir» para distinguirla de la confirmación.
+
+
+### v32 · Revisión directa y usable en móvil
+- La acción «Revisar esta línea» abre el pedido y desplaza directamente hasta la línea que originó la alerta, enfocando su acción.
+- En móvil, las líneas se muestran como tarjetas verticales: producto, referencia, cantidad, precio y confirmación quedan visibles sin desplazamiento horizontal.
+- Cada línea ofrece «Confirmar datos» y registra la confirmación local; el progreso muestra cuántas líneas están confirmadas.
+- Se aclara que la confirmación es una revisión humana de la línea completa, no una verificación automática del proveedor ni del ERP.
