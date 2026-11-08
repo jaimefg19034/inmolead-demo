@@ -492,15 +492,20 @@ async function importCsvFile(file,fingerprint){
  if(errors.length)downloadImportErrors("pedidoclaro-errores-pedidos.csv",originalHeaders,errors);
  const importableGroups=[...groups.values()].filter(g=>g.lines.length);
  if(!importableGroups.length)throw new Error("No se ha encontrado ninguna línea válida según las reglas configuradas. Se ha descargado un CSV con las filas rechazadas.");
- let added=0,skipped=0;
+ // Preparar toda la importación en memoria antes de tocar el estado persistente.
+ const existingSources=new Set(state.orders.map(o=>o.sourceId)),newOrders=[];
+ let added=0,skipped=0,nextCounter=Math.max(state.counter,...state.orders.map(o=>Number(String(o.id).replace(/^PD-/,""))||0));
  for(const g of importableGroups){
-  if(state.orders.some(o=>o.sourceId===g.sourceId)){skipped++;continue;}
-  state.counter=Math.max(state.counter,...state.orders.map(o=>Number(o.id.slice(3))||0))+1;
-  state.orders.unshift({id:"PD-"+state.counter,sourceId:g.sourceId,sourceRef:g.sourceRef,client:g.client.slice(0,120),date:"Importado ahora",channel:"CSV importado",status:"review",lines:g.lines});
-  added++;
+  if(existingSources.has(g.sourceId)){skipped++;continue;}
+  nextCounter++;
+  newOrders.push({id:"PD-"+nextCounter,sourceId:g.sourceId,sourceRef:g.sourceRef,client:g.client.slice(0,120),date:"Importado ahora",channel:"CSV importado",status:"review",lines:g.lines});
+  existingSources.add(g.sourceId);added++;
  }
  if(!added)throw new Error("Todos los pedidos del fichero ya estaban importados.");
- state.selected=state.orders[0].id;log("Importó "+added+" pedido(s) desde CSV; omitidos por duplicado: "+skipped);render();
+ // Commit atómico: solo se actualiza state cuando todos los pedidos están preparados.
+ state.orders=[...newOrders,...state.orders];
+ state.counter=nextCounter;
+ state.selected=newOrders[0].id;log("Importó "+added+" pedido(s) desde CSV; omitidos por duplicado: "+skipped);render();
  notify("Importados "+added+" pedido(s). Líneas rechazadas: "+errors.length+". Duplicados omitidos: "+skipped+"."+(errors.length?" Se descargó un CSV con los errores.":""));
 }
 function backupData(){

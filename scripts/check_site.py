@@ -49,6 +49,13 @@ def main():
     for token in ("async function csvFingerprint(content)", "function auditImportRows(rows,kind,fingerprint)", 'const source=get("order")||"__FILE__:"+fingerprint', 'if(state.orders.some(o=>o.sourceId===key)&&item.status!=="rejected")', 'const raw=await file.text(),fingerprint=await csvFingerprint(raw),rows=csvParse(raw)', 'const importBatch="__FILE__:"+stableFingerprint', "importCsvFile(task.file,task.fingerprint)"):
         if token not in js: raise SystemExit("Falta protección contra reimportación CSV: "+token)
     if "audit.issues=audit.rows.filter" not in js or "pendingImport.audit.issues" not in js or "Descargar incidencias" not in source: raise SystemExit("Falta la exportación completa de incidencias CSV")
+    import_start=js.index("async function importCsvFile(file,fingerprint){")
+    import_end=js.index("function backupData(){",import_start)
+    csv_import=js[import_start:import_end]
+    for token in ("const existingSources=new Set(state.orders.map(o=>o.sourceId)),newOrders=[]", "let added=0,skipped=0,nextCounter=", "newOrders.push({id:\"PD-\"+nextCounter", "state.orders=[...newOrders,...state.orders]", "state.counter=nextCounter", "state.selected=newOrders[0].id"):
+        if token not in csv_import: raise SystemExit("Falta preparación transaccional en importación CSV: "+token)
+    if csv_import.index("newOrders.push(")>csv_import.index("state.orders=[...newOrders,...state.orders]") or csv_import.index("state.orders=[...newOrders,...state.orders]")>csv_import.index("state.counter=nextCounter"):
+        raise SystemExit("La importación CSV modifica el estado antes de preparar todos los pedidos")
     for token in ('id="view-catalog"', 'id="catalog-import"', 'id="catalog-export"', 'id="product-dialog"'):
         if token not in source: raise SystemExit("Falta catálogo: "+token)
     for token in ("catalogSeed", "function renderCatalog", "function catalogCsvExport", "function catalogCsvImport", "catalog-file", "catalogProduct", "Precio distinto al catálogo", "data-catalog-apply", "data-product-edit", "editingCatalogSku", "duplicateSku", "Referencia repetida en el pedido", "product?.price??r.price", "const importBatch=", 'sourceRef=get("order")||"Importación sin número"', "sourceId:key", "v>999999", "const orderIds=new Set(),sourceIds=new Set()", "catalogSkus=new Set()", "referencias SKU duplicadas"):
