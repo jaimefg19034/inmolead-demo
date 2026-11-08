@@ -12,7 +12,7 @@ PedidoClaro explora cómo preparar, revisar y exportar pedidos antes de introduc
 - Confirmación de incidencias y bloqueo de aprobación si quedan pendientes.
 - Aprobación y descarte locales.
 - Exportación CSV de un pedido o de toda la bandeja.\n- **Exportación Excel `.xlsx` real** para pedidos y catálogo, con encabezados destacados, filtros, primera fila congelada, anchos de columna y formatos numéricos. No requiere librerías ni servicios externos.
-- **Importación CSV** con validación básica, agrupación por pedido y detección de importaciones duplicadas. Si el CSV no incluye número de pedido, agrupa las líneas por cliente dentro de esa importación (en vez de crear un pedido por línea). Cada nueva importación sin número genera un lote independiente.
+- **Importación CSV** con validación de cada fila, agrupación por pedido y detección de importaciones duplicadas. Las filas rechazadas se descargan en un segundo CSV con número de fila y motivo, sin perder el contenido original. Si el CSV no incluye número de pedido, agrupa las líneas por cliente dentro de esa importación (en vez de crear un pedido por línea). Cada nueva importación sin número genera un lote independiente.
 - Plantilla CSV descargable.
 - **Catálogo local de productos**: alta y eliminación manual, búsqueda, importación CSV y exportación CSV.
 - El catálogo se incluye en las copias JSON y se restaura junto con los pedidos.
@@ -20,7 +20,7 @@ PedidoClaro explora cómo preparar, revisar y exportar pedidos antes de introduc
 - Parser de texto local muy limitado para algunos ejemplos.
 - Historial de acciones y guardado local.
 - **PWA / modo sin conexión**: el navegador guarda los archivos de la aplicación tras la primera visita.
-- Diseño responsive y controles automáticos en GitHub Actions.
+- Diseño responsive, navegación móvil compacta y controles automáticos en GitHub Actions.
 
 ## Catálogo de productos
 El catálogo admite columnas `referencia`, `producto` y `precio_unitario` (obligatorias), con `unidad` opcional. Al importar, las referencias existentes se actualizan y las nuevas se añaden. También puedes editar productos y aplicar sus datos a una línea del pedido, que queda pendiente de confirmación humana. Al importar pedidos CSV, las referencias se comparan con el catálogo: se marcan las referencias desconocidas, las diferencias de precio y las referencias repetidas dentro de un pedido para revisión humana. El parser de texto también utiliza los precios y unidades del catálogo cuando encuentra la referencia. No se corrigen ni aprueban automáticamente. No existe sincronización con inventario ni ERP.
