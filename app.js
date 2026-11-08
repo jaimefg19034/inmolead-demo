@@ -11,9 +11,16 @@ const catalogSeed=[{sku:"TOR-INOX-550",name:"Tornillo inox A2 5×50",unit:"caja"
 const $=id=>document.getElementById(id),labels={review:"Por revisar",ready:"Listo para aprobar",approved:"Aprobado",rejected:"Descartado"},money=n=>new Intl.NumberFormat("es-ES",{style:"currency",currency:"EUR"}).format(n),sum=o=>o.lines.reduce((n,l)=>n+l.qty*l.price,0),issues=o=>o.lines.filter(l=>!l.checked||l.issue).length,final=o=>["approved","rejected"].includes(o.status),esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 let editingCatalogSku=null;
 const selectedOrderIds=new Set();
-let state={orders:JSON.parse(JSON.stringify(seed)),activity:[],catalog:JSON.parse(JSON.stringify(catalogSeed)),selected:"PD-1048",counter:1048};
+const defaultRules={maxQuantity:999999,priceTolerancePct:2,unknownSku:"review",duplicateSku:"review"};
+let state={orders:JSON.parse(JSON.stringify(seed)),activity:[],catalog:JSON.parse(JSON.stringify(catalogSeed)),rules:{...defaultRules},selected:"PD-1048",counter:1048};
 try{const saved=JSON.parse(localStorage.getItem(KEY));if(saved&&Array.isArray(saved.orders)&&Array.isArray(saved.activity))state={...state,...saved};}catch{}
 if(!Array.isArray(state.catalog))state.catalog=JSON.parse(JSON.stringify(catalogSeed));
+state.rules={...defaultRules,...(state.rules||{})};
+state.rules.maxQuantity=Math.min(999999,Math.max(1,Math.floor(Number(state.rules.maxQuantity)||999999)));
+state.rules.priceTolerancePct=Math.min(100,Math.max(0,Number(state.rules.priceTolerancePct)||0));
+if(!["review","block"].includes(state.rules.unknownSku))state.rules.unknownSku="review";
+if(!["review","block"].includes(state.rules.duplicateSku))state.rules.duplicateSku="review";
+function priceDiffers(reference,actual){return Math.abs(Number(reference)-Number(actual))>Math.max(0.01,Math.abs(Number(reference))*state.rules.priceTolerancePct/100);}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch{notify("No se pudo guardar en este navegador.");}}
 function notify(s){const e=$("toast");e.textContent=s;e.classList.add("show");clearTimeout(notify.t);notify.t=setTimeout(()=>e.classList.remove("show"),2600);}
 function log(message,id=""){state.activity.unshift({message,id,time:new Date().toLocaleString("es-ES",{dateStyle:"short",timeStyle:"short"})});state.activity=state.activity.slice(0,100);persist();}
@@ -247,20 +254,20 @@ function auditImportRows(rows,kind){
    if(r.length!==originalHeaders.length)item.reason="Número de columnas distinto al encabezado";
    else{
     const client=get("client"),sku=get("sku"),name=get("name"),qty=parseNumber(get("qty")),price=parseNumber(get("price"));
-    if(!client)item.reason="Falta el cliente";else if(!sku)item.reason="Falta la referencia SKU";else if(!name)item.reason="Falta el nombre del producto";else if(!get("qty")||!Number.isFinite(qty))item.reason="Cantidad vacía o no numérica";else if(!Number.isInteger(qty)||qty<1||qty>999999)item.reason="Cantidad fuera del límite (1–999.999)";else if(!get("price")||!Number.isFinite(price))item.reason="Precio vacío o no numérico";else if(price<0||price>999999)item.reason="Precio fuera del límite (0–999.999)";
+    if(!client)item.reason="Falta el cliente";else if(!sku)item.reason="Falta la referencia SKU";else if(!name)item.reason="Falta el nombre del producto";else if(!get("qty")||!Number.isFinite(qty))item.reason="Cantidad vacía o no numérica";else if(!Number.isInteger(qty)||qty<1||qty>state.rules.maxQuantity)item.reason="Cantidad fuera del límite configurado (1–"+state.rules.maxQuantity.toLocaleString("es-ES")+")";else if(!get("price")||!Number.isFinite(price))item.reason="Precio vacío o no numérico";else if(price<0||price>999999)item.reason="Precio fuera del límite (0–999.999)";
     if(!item.reason){
      const source=get("order")||"__LOTE_PREVIEW__",key=source+"|"+client,sk=sku.toLocaleLowerCase("es");
      if(!groupMap.has(key))groupMap.set(key,{sourceId:key,client,order:get("order"),lines:0,existing:false});
      const group=groupMap.get(key);group.lines++;
      if(!skuSets.has(key))skuSets.set(key,new Set());
-     if(skuSets.get(key).has(sk)){item.status="warning";item.reason="Referencia repetida dentro del mismo pedido";}else skuSets.get(key).add(sk);
+     if(skuSets.get(key).has(sk)){item.status=state.rules.duplicateSku==="block"?"rejected":"warning";item.reason="Referencia repetida dentro del mismo pedido"+(state.rules.duplicateSku==="block"?" · bloqueada por regla":"");}else skuSets.get(key).add(sk);
      const product=state.catalog.find(p=>p.sku.toLocaleLowerCase("es")===sk);
-     if(!product){if(item.status==="ok")item.status="warning";item.reason+=(item.reason?"; ":"")+"SKU no encontrado en catálogo";}
-     else if(Math.abs(product.price-Math.round(price*100)/100)>0.01){if(item.status==="ok")item.status="warning";item.reason+=(item.reason?"; ":"")+"Precio distinto al catálogo";}
+     if(!product){if(state.rules.unknownSku==="block")item.status="rejected";else if(item.status==="ok")item.status="warning";item.reason+=(item.reason?"; ":"")+"SKU no encontrado en catálogo"+(state.rules.unknownSku==="block"?" · bloqueado por regla":"");}
+     else if(priceDiffers(product.price,Math.round(price*100)/100)){if(item.status==="ok")item.status="warning";item.reason+=(item.reason?"; ":"")+"Precio distinto al catálogo (tolerancia "+state.rules.priceTolerancePct+"%)";}
      if(get("order")&&state.orders.some(o=>o.sourceId===key)){item.status="duplicate";item.reason="Este pedido y cliente ya se importaron anteriormente";group.existing=true;}
     }
    }
-   if(item.reason&&item.status==="ok"){item.status="rejected";audit.rejected++;audit.errors.push({row:item.row,reason:item.reason,values:r});}
+   if(item.status==="rejected"||(item.reason&&item.status==="ok")){item.status="rejected";audit.rejected++;audit.errors.push({row:item.row,reason:item.reason,values:r});}
    else if(item.status==="duplicate"){audit.duplicates++;}
    else if(item.status==="warning"){audit.warnings++;audit.valid++;}
    else if(item.status==="ok"){audit.valid++;}
@@ -343,10 +350,10 @@ async function importCsvFile(file){
  const groups=new Map(),errors=[];const importBatch="SIN-ID-"+new Date().toISOString()+"-"+state.counter;
  rows.forEach((r,i)=>{if(r.length!==originalHeaders.length){errors.push({row:i+2,reason:"Número de columnas distinto al encabezado",values:r});return;}const get=k=>cols[k]<0?"":String(r[cols[k]]??"").trim(),client=get("client"),sku=get("sku"),name=get("name"),qty=parseNumber(get("qty")),price=parseNumber(get("price")),unit=get("unit")||"ud.",source=get("order")||importBatch,sourceRef=get("order")||"Importación sin número";
  let reason="";
- if(!client)reason="Falta el cliente";else if(!sku)reason="Falta la referencia SKU";else if(!name)reason="Falta el nombre del producto";else if(!get("qty")||!Number.isFinite(qty))reason="Cantidad vacía o no numérica";else if(!Number.isInteger(qty)||qty<1||qty>999999)reason="Cantidad fuera del límite (1–999.999, sin decimales)";else if(!get("price")||!Number.isFinite(price))reason="Precio vacío o no numérico";else if(price<0||price>999999)reason="Precio fuera del límite (0–999.999)";
+ if(!client)reason="Falta el cliente";else if(!sku)reason="Falta la referencia SKU";else if(!name)reason="Falta el nombre del producto";else if(!get("qty")||!Number.isFinite(qty))reason="Cantidad vacía o no numérica";else if(!Number.isInteger(qty)||qty<1||qty>state.rules.maxQuantity)reason="Cantidad fuera del límite configurado (1–"+state.rules.maxQuantity.toLocaleString("es-ES")+")";else if(!get("price")||!Number.isFinite(price))reason="Precio vacío o no numérico";else if(price<0||price>999999)reason="Precio fuera del límite (0–999.999)";
  if(reason){errors.push({row:i+2,reason,values:r});return;}
  const key=source+"|"+client;if(!groups.has(key))groups.set(key,{sourceId:key,sourceRef,client,lines:[]});
- const catalogProduct=state.catalog.find(p=>p.sku.toLocaleLowerCase("es")===sku.toLocaleLowerCase("es"));const roundedPrice=Math.round(price*100)/100;const duplicateSku=groups.get(key).lines.some(line=>line.sku.toLocaleLowerCase("es")===sku.toLocaleLowerCase("es"));const issue=duplicateSku?"Referencia repetida en el pedido: confirma si son líneas distintas":!catalogProduct?"Referencia no encontrada en el catálogo: valida el SKU":Math.abs(catalogProduct.price-roundedPrice)>0.01?"Precio distinto al catálogo (referencia: "+money(catalogProduct.price)+")":"Importada: confirma cantidad y producto";groups.get(key).lines.push({name:name.slice(0,160),sku:sku.slice(0,80),qty,unit:unit.slice(0,30),price:roundedPrice,issue,checked:false});
+ const catalogProduct=state.catalog.find(p=>p.sku.toLocaleLowerCase("es")===sku.toLocaleLowerCase("es"));const roundedPrice=Math.round(price*100)/100;const duplicateSku=groups.get(key).lines.some(line=>line.sku.toLocaleLowerCase("es")===sku.toLocaleLowerCase("es"));if(duplicateSku&&state.rules.duplicateSku==="block"){errors.push({row:i+2,reason:"Referencia repetida en el pedido · bloqueada por regla",values:r});return;}if(!catalogProduct&&state.rules.unknownSku==="block"){errors.push({row:i+2,reason:"SKU no encontrado en catálogo · bloqueado por regla",values:r});return;}const issue=duplicateSku?"Referencia repetida en el pedido: confirma si son líneas distintas":!catalogProduct?"Referencia no encontrada en el catálogo: valida el SKU":priceDiffers(catalogProduct.price,roundedPrice)?"Precio distinto al catálogo (referencia: "+money(catalogProduct.price)+")":"Importada: confirma cantidad y producto";groups.get(key).lines.push({name:name.slice(0,160),sku:sku.slice(0,80),qty,unit:unit.slice(0,30),price:roundedPrice,issue,checked:false});
  });
  if(errors.length)downloadImportErrors("pedidoclaro-errores-pedidos.csv",originalHeaders,errors);
  if(!groups.size)throw new Error("No se ha encontrado ninguna línea válida. Se ha descargado un CSV con las filas rechazadas.");
@@ -362,7 +369,7 @@ async function importCsvFile(file){
  notify("Importados "+added+" pedido(s). Líneas rechazadas: "+errors.length+". Duplicados omitidos: "+skipped+"."+(errors.length?" Se descargó un CSV con los errores.":""));
 }
 function backupData(){
- const payload={app:"PedidoClaro",version:2,exportedAt:new Date().toISOString(),counter:state.counter,orders:state.orders,activity:state.activity,catalog:state.catalog};
+ const payload={app:"PedidoClaro",version:2,exportedAt:new Date().toISOString(),counter:state.counter,orders:state.orders,activity:state.activity,catalog:state.catalog,rules:state.rules};
  downloadFile("pedidoclaro-copia-"+new Date().toISOString().slice(0,10)+".json",JSON.stringify(payload,null,2),"application/json;charset=utf-8");
  log("Descargó una copia de seguridad local");notify("Copia JSON descargada.");
 }
@@ -388,7 +395,7 @@ async function restoreData(file){
  const catalogSkus=new Set();
  for(const p of cleanCatalog){const key=p.sku.toLocaleLowerCase("es");if(catalogSkus.has(key))throw new Error("La copia contiene referencias SKU duplicadas: "+p.sku+".");catalogSkus.add(key);}
  if(!confirm("Esto sustituirá los pedidos y el historial guardados en este navegador. ¿Continuar?"))return;
- state.orders=cleanOrders;state.catalog=cleanCatalog;state.orders.forEach(o=>{if(!["approved","rejected"].includes(o.status))o.status=derived(o);});state.activity=cleanActivity;state.counter=Math.max(Number(data.counter)||0,...cleanOrders.map(o=>Number(String(o.id).replace("PD-",""))||0));state.selected=state.orders[0]?.id||null;persist();render();notify("Copia restaurada correctamente.");
+ state.orders=cleanOrders;state.catalog=cleanCatalog;state.rules={...defaultRules,...(data.rules||{})};state.rules.maxQuantity=Math.min(999999,Math.max(1,Math.floor(Number(state.rules.maxQuantity)||999999)));state.rules.priceTolerancePct=Math.min(100,Math.max(0,Number(state.rules.priceTolerancePct)||0));if(!["review","block"].includes(state.rules.unknownSku))state.rules.unknownSku="review";if(!["review","block"].includes(state.rules.duplicateSku))state.rules.duplicateSku="review";state.orders.forEach(o=>{if(!["approved","rejected"].includes(o.status))o.status=derived(o);});state.activity=cleanActivity;state.counter=Math.max(Number(data.counter)||0,...cleanOrders.map(o=>Number(String(o.id).replace("PD-",""))||0));state.selected=state.orders[0]?.id||null;persist();render();notify("Copia restaurada correctamente.");
 }
 
 function renderReviewQueue(){
@@ -401,7 +408,7 @@ function renderReviewQueue(){
    if(line.issue)reasons.push(line.issue);
    else if(!line.checked)reasons.push("Línea pendiente de confirmar");
    if(!product)reasons.push("SKU no existe en el catálogo");
-   else if(Math.abs(Number(product.price)-Number(line.price))>0.01)reasons.push("Precio distinto al de referencia");
+   else if(priceDiffers(product.price,line.price))reasons.push("Precio distinto al de referencia");
    if(reasons.length)findings.push({order:o,line,reasons});
   }
  }
@@ -417,6 +424,10 @@ function parseText(){const raw=$("raw-order").value.trim();if(!raw){notify("Pega
 function view(name){document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id==="view-"+name));document.querySelectorAll(".navbtn").forEach(b=>b.classList.toggle("active",b.dataset.view===name));$("crumb").textContent={orders:"Bandeja de pedidos",catalog:"Catálogo de productos",clients:"Clientes",analytics:"Analítica",activity:"Actividad reciente",guide:"Cómo funciona"}[name];if(name==="catalog")renderCatalog();if(name==="clients")renderClients();if(name==="analytics")renderAnalytics();}
 $("search").oninput=renderList;$("filter").onchange=renderList;$("sort-orders").onchange=renderList;$("export-filtered").onclick=()=>exportCsv(getVisibleOrders());$("export-filtered-xlsx").onclick=()=>exportOrdersXlsx(getVisibleOrders());
 $("select-visible").onchange=()=>{getVisibleOrders().forEach(o=>{if($("select-visible").checked)selectedOrderIds.add(o.id);else selectedOrderIds.delete(o.id);});updateBulkBar();$("order-list").querySelectorAll("[data-select-order]").forEach(x=>x.checked=selectedOrderIds.has(x.dataset.selectOrder));};
+$("open-rules").onclick=()=>{$("rule-max-qty").value=state.rules.maxQuantity;$("rule-price-tolerance").value=state.rules.priceTolerancePct;$("rule-unknown-sku").value=state.rules.unknownSku;$("rule-duplicate-sku").value=state.rules.duplicateSku;$("rules-dialog").showModal();};
+$("rules-cancel").onclick=()=>$("rules-dialog").close();
+$("rules-form").addEventListener("submit",e=>{if(e.submitter?.id!=="rules-save")return;e.preventDefault();const max=Number($("rule-max-qty").value),tolerance=Number($("rule-price-tolerance").value);if(!Number.isInteger(max)||max<1||max>999999||!Number.isFinite(tolerance)||tolerance<0||tolerance>100){notify("Revisa los límites de las reglas.");return;}state.rules={maxQuantity:max,priceTolerancePct:tolerance,unknownSku:$("rule-unknown-sku").value==="block"?"block":"review",duplicateSku:$("rule-duplicate-sku").value==="block"?"block":"review"};persist();$("rules-dialog").close();log("Actualizó las reglas de validación");render();notify("Reglas guardadas. Se aplicarán a las próximas importaciones.");});
+
 $("bulk-clear").onclick=()=>{selectedOrderIds.clear();renderList();};
 $("bulk-export-csv").onclick=()=>exportCsv(state.orders.filter(o=>selectedOrderIds.has(o.id)));
 $("bulk-export-xlsx").onclick=()=>exportOrdersXlsx(state.orders.filter(o=>selectedOrderIds.has(o.id)));
