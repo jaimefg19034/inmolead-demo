@@ -2,7 +2,7 @@
 """Dependency-free static checks for PedidoClaro."""
 from html.parser import HTMLParser
 from pathlib import Path
-import shutil, subprocess, sys
+import json, shutil, subprocess, sys
 ROOT=Path(__file__).resolve().parents[1]
 class PageParser(HTMLParser):
     def __init__(self):
@@ -22,25 +22,30 @@ class PageParser(HTMLParser):
         if self.in_title:self.title.append(data)
         if self.in_script:self.script.append(data)
 def main():
-    page=ROOT/"index.html"; app=ROOT/"app.js"; css=ROOT/"styles.css"
-    for p in (page,app,css):
-        if not p.is_file(): raise SystemExit("Falta archivo requerido: "+str(p.relative_to(ROOT)))
-    source=page.read_text(encoding="utf-8"); js=app.read_text(encoding="utf-8")
+    required_files=["index.html","app.js","styles.css","manifest.webmanifest","sw.js","icon.svg"]
+    for name in required_files:
+        if not (ROOT/name).is_file(): raise SystemExit("Falta archivo requerido: "+name)
+    source=(ROOT/"index.html").read_text(encoding="utf-8")
+    js=(ROOT/"app.js").read_text(encoding="utf-8")
+    sw=(ROOT/"sw.js").read_text(encoding="utf-8")
+    manifest=json.loads((ROOT/"manifest.webmanifest").read_text(encoding="utf-8"))
     p=PageParser();p.feed(source)
     if p.lang!="es" or "PedidoClaro" not in "".join(p.title): raise SystemExit("Idioma o título incorrecto")
-    required=['id="order-list"','id="detail-panel"','id="parse-order"','id="activity-list"','id="view-guide"']
-    missing=[x for x in required if x not in source]
+    required_ids=['id="order-list"','id="detail-panel"','id="parse-order"','id="activity-list"','id="view-guide"','id="import-csv"','id="backup-data"','id="restore-data"']
+    missing=[x for x in required_ids if x not in source]
     if missing: raise SystemExit("Faltan controles: "+", ".join(missing))
-    for token in ("pedidoclaro-demo-v2","function renderList","function renderDetail","function exportCsv","function parseText","addEventListener"):
+    for token in ("pedidoclaro-demo-v2","function renderList","function renderDetail","function exportCsv","function parseText","function importCsvFile","function backupData","function restoreData","serviceWorker.register"):
         if token not in js: raise SystemExit("Falta funcionalidad JS: "+token)
+    if "CACHE_NAME" not in sw or "PedidoClaro" not in manifest.get("name",""): raise SystemExit("PWA incompleta")
     if "datos ficticios" not in source.lower() or "no contiene ia" not in source.lower(): raise SystemExit("Faltan avisos de demo")
     node=shutil.which("node")
     if node:
-        result=subprocess.run([node,"--check",str(app)],text=True,capture_output=True)
-        if result.returncode: print(result.stderr,file=sys.stderr); raise SystemExit("JavaScript: error de sintaxis")
+        for name in ["app.js","sw.js"]:
+            result=subprocess.run([node,"--check",str(ROOT/name)],text=True,capture_output=True)
+            if result.returncode: print(result.stderr,file=sys.stderr); raise SystemExit(name+": error de sintaxis")
         for number,inline in enumerate(p.scripts,1):
             result=subprocess.run([node,"--check","-"],input=inline,text=True,capture_output=True)
             if result.returncode: print(result.stderr,file=sys.stderr); raise SystemExit(f"JavaScript inline {number}: error")
-    print(f"OK: HTML válido a nivel estructural, {len(p.ids)} IDs únicos, app.js y styles.css presentes.")
+    print(f"OK: {len(p.ids)} IDs únicos, manifest válido, PWA offline, importación CSV, copias JSON y JavaScript.")
     if not node: print("Aviso: Node.js no disponible; sintaxis JS no comprobada.")
 if __name__=="__main__": main()
