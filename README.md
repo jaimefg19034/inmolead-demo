@@ -88,3 +88,11 @@ Todos los servicios usados en la demo son gratuitos y estáticos. El producto no
 - En móvil, las líneas se muestran como tarjetas verticales: producto, referencia, cantidad, precio y confirmación quedan visibles sin desplazamiento horizontal.
 - Cada línea ofrece «Confirmar datos» y registra la confirmación local; el progreso muestra cuántas líneas están confirmadas.
 - Se aclara que la confirmación es una revisión humana de la línea completa, no una verificación automática del proveedor ni del ERP.
+
+
+### v33 · Reglas específicas por cliente
+- La vista Clientes permite configurar reglas particulares para cada cliente.
+- Las reglas de cliente pueden ajustar cantidad máxima, tolerancia de precio, SKU desconocido y SKU duplicado; los valores iniciales heredan la configuración general.
+- El análisis previo, la importación real y la cola de revisión consultan las reglas correspondientes al cliente.
+- Se puede volver a las reglas generales con «Usar reglas generales».
+- Las reglas específicas se guardan localmente y se incluyen en las copias JSON. Las copias antiguas siguen siendo compatibles.
