@@ -1,11 +1,26 @@
-# Mensaje inicial para una inmobiliaria
+# Mensajes para contactar inmobiliarias
 
-Hola, ¿qué tal?
+## WhatsApp o LinkedIn
+Hola, ¿qué tal? Estoy desarrollando InmoLead, un prototipo para ayudar a pequeñas inmobiliarias a detectar consultas que necesitan seguimiento y tener claro el siguiente paso con cada contacto.
 
-Estoy desarrollando una herramienta sencilla para inmobiliarias que ayuda a organizar las consultas de posibles compradores y detectar qué contactos necesitan seguimiento para convertir más conversaciones en visitas.
-
-Estoy hablando con algunas agencias para entender cómo gestionan actualmente los contactos y qué tareas les hacen perder más tiempo.
-
-No quiero venderte nada en esta primera conversación: me gustaría enseñarte una demo de 5 minutos y conocer cómo lo hacéis vosotros. ¿Te vendría bien esta semana?
+Estoy hablando con agencias para entender cómo gestionan ahora los leads y qué se les queda atascado. No es una venta: ¿te podría enseñar una demo de 5 minutos y hacerte unas preguntas sobre vuestro proceso?
 
 ¡Gracias!
+
+## Email
+**Asunto:** Una pregunta sobre cómo gestionáis los leads en la agencia
+
+Hola:
+
+Estoy investigando cómo las inmobiliarias pequeñas organizan las consultas de compradores y sus seguimientos. Estoy desarrollando InmoLead, un prototipo que busca ayudar a identificar oportunidades sin una próxima acción clara.
+
+Antes de construir más funciones, quiero entender cómo lo resolvéis actualmente y qué problemas os encontráis. ¿Tendrías 15–20 minutos esta semana para una conversación breve? También puedo enseñarte la demo, que por ahora funciona con datos ficticios y no se conecta a vuestros sistemas.
+
+Muchas gracias,
+
+Equipo InmoLead
+
+## Seguimiento (una sola vez)
+Hola de nuevo. Te escribo solo para cerrar el círculo. Si ahora no es buen momento, no pasa nada. Me ayudaría mucho conocer cómo organizáis los seguimientos en la agencia. ¡Gracias!
+
+Personalizar el mensaje con un motivo real. No enviar mensajes masivos ni insistir si no hay interés. Respetar las normas aplicables al canal y protección de datos. No afirmar que ya hay IA, WhatsApp o CRM conectados.
