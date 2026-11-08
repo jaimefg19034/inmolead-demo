@@ -98,6 +98,7 @@ console.log("Catalog capacity tests OK");
         result=subprocess.run([node,"-e",catalog_limit_tests],text=True,capture_output=True)
         if result.returncode: print(result.stderr,file=sys.stderr); raise SystemExit("Pruebas del límite del catálogo fallidas")
         if "catalogCapacityReached(state.catalog.length+audit.added)" not in js or "catalogCapacityReached(nextCatalog.length)" not in js: raise SystemExit("La vista previa y la importación no aplican el límite del catálogo")
+        if '"El catálogo ha alcanzado el máximo de 5.000 productos."' not in js or "catalogCapacityReached(state.catalog.length)" not in js: raise SystemExit("La creación manual no respeta el límite del catálogo")
         xml_start=js.index("function xmlEsc(value){")
         xml_end=js.index("\nfunction excelCol",xml_start)
         xml_helper=js[xml_start:xml_end]
