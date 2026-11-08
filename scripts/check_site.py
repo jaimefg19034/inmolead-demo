@@ -74,7 +74,7 @@ def main():
         tests=parser+r"""
 const assert=require("node:assert/strict");
 assert.deepEqual(csvParse('sku;name\\r\\n1;"Cafe; molido"'),[['sku','name'],['1','Cafe; molido']]);
-assert.deepEqual(csvParse('sku,name\\n1,"Cafe ""premium"""'),[['sku','name'],['1','Cafe "premium"']]);
+assert.deepEqual(csvParse(`sku,name\\n1,"Cafe ""premium"""`),[['sku','name'],['1','Cafe "premium"']]);
 assert.deepEqual(csvParse('sku;name\\n1;"Linea 1\\nLinea 2"'),[['sku','name'],['1','Linea 1\\nLinea 2']]);
 assert.deepEqual(csvParse('a;b\\n1;'),[['a','b'],['1','']]);
 assert.throws(()=>csvParse('a;b\\n1;"ab'),/comillas sin cerrar/);
