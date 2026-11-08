@@ -1,59 +1,33 @@
-# InmoLead
+# PedidoClaro
 
-**Prototipo de validación para pequeñas inmobiliarias.** La hipótesis es que algunas agencias pierden continuidad comercial cuando una consulta no recibe respuesta o no tiene un siguiente paso claro.
+**Prototipo de validación para distribuidores mayoristas B2B.** Explora cómo preparar y revisar pedidos que llegan en distintos formatos antes de introducirlos en el ERP.
 
-🌐 Demo publicada: https://jaimefg19034.github.io/inmolead-demo/
+🌐 **Demo:** https://jaimefg19034.github.io/inmolead-demo/
 
-## Estado real del proyecto
+## Qué puedes probar
+- Bandeja de pedidos de ejemplo con filtros y búsqueda.
+- Revisión de líneas, referencias, cantidades e incidencias.
+- Aprobación o descarte dentro de la demo.
+- Exportación CSV.
+- Simulación de entrada de pedidos.
+- Pegado de texto con un parser local muy limitado.
+- Guardado de cambios en el navegador.
 
-La versión actual es una demo frontend estática con datos ficticios. Permite:
+## Estado real y límites
+Esto es un prototipo frontend con datos ficticios. **No tiene IA, OCR, conexión con email, WhatsApp ni ERP.** No procesa documentos reales. Los cambios se guardan en localStorage. Aprobar un pedido solo cambia su estado en la demo; no transmite ni registra nada fuera del navegador. No introducir información comercial, personal o pedidos reales.
 
-- Ver un resumen calculado a partir de los registros de ejemplo.
-- Buscar y filtrar oportunidades por estado.
-- Añadir, editar y eliminar registros ficticios.
-- Consultar los seguimientos vencidos y próximos.
-- Preparar, editar y copiar borradores locales.
-- Cambiar el estado y programar un siguiente seguimiento de ejemplo.
-- Registrar actividad local y exportar los registros a CSV.
-- Reiniciar la demo a sus datos iniciales.
-- Utilizar la web desde móvil o escritorio.
+## Hipótesis
+Algunos distribuidores pueden dedicar tiempo a transcribir pedidos de email/PDF/Excel al ERP y resolver errores de referencias, unidades y cantidades. La hipótesis aún no está validada. Hay competidores especializados y no pretendemos sustituir el ERP.
 
-**No es todavía un SaaS ni debe utilizarse para gestionar compradores reales.** No tiene inicio de sesión, servidor, base de datos, cifrado de datos de clientes, IA conectada, WhatsApp, correo, calendario, integraciones con CRM, pagos ni envío de mensajes. Los cambios se guardan en `localStorage` del navegador donde se abrió la demo.
+## Validación antes de desarrollar
+1. Entrevistar a 10 distribuidores de un mismo segmento.
+2. Medir pedidos al mes y minutos de registro.
+3. Identificar ERP, canales y errores frecuentes.
+4. Observar un flujo real con datos anonimizados.
+5. Conseguir un piloto limitado y acordar métricas.
+6. Solo entonces decidir si construir extracción IA, OCR o integración ERP.
 
-## Cómo probarla
-
-1. Abre el enlace de GitHub Pages.
-2. Baja hasta «Explora InmoLead».
-3. Entra en Oportunidades y abre un registro.
-4. Prueba a preparar y copiar un borrador, cambiar el estado y guardar un seguimiento.
-5. Añade un contacto completamente ficticio, filtra la tabla y exporta el CSV.
-6. Pulsa «Reiniciar demo» para recuperar los datos iniciales.
-
-No introduzcas nombres, teléfonos, correos, direcciones ni información de clientes reales.
+Consulta `pedidoclaro/docs/` para investigación, entrevistas y roadmap. El material anterior de InmoLead queda como archivo de una hipótesis descartada, no como producto actual.
 
 ## Publicación
-
-GitHub Pages se despliega automáticamente al actualizar `main`, mediante `.github/workflows/pages.yml`.
-
-## Estrategia de producto
-
-No competir inicialmente como CRM inmobiliario completo. El mercado ya cuenta con herramientas que incluyen contactos, seguimiento, agenda y automatizaciones. La hipótesis diferenciadora que queremos probar es una capa sencilla que detecte oportunidades sin siguiente acción, ayude a priorizarlas y encaje en el proceso que la agencia ya utiliza.
-
-Antes de desarrollar integraciones:
-
-1. Entrevistar a 10 agencias pequeñas.
-2. Identificar el CRM, canales y proceso real que usan.
-3. Confirmar que el problema de seguimiento es frecuente y costoso.
-4. Conseguir 2 agencias interesadas en diseñar un piloto.
-5. Validar disposición a pagar con un piloto asistido y métricas claras.
-
-Consulta `docs/` para el plan de entrevistas, oferta de piloto, investigación competitiva, roadmap, arquitectura futura y lista de seguridad.
-
-## Principios
-
-- No afirmar que un contacto está olvidado sin datos suficientes.
-- No inventar disponibilidad, precios ni características de inmuebles.
-- No enviar mensajes sin aprobación humana y controles apropiados.
-- Minimizar los datos personales, limitar accesos y definir conservación y borrado.
-- Medir el tiempo ahorrado y la continuidad del seguimiento, no prometer ventas.
-- Validar la disposición a pagar antes de asumir costes fijos de APIs o infraestructura.
+GitHub Pages se despliega desde `main` mediante `.github/workflows/pages.yml`. Los controles automáticos de HTML/JavaScript se ejecutan con `.github/workflows/quality.yml`.
