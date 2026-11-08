@@ -12,7 +12,7 @@ PedidoClaro explora cómo preparar, revisar y exportar pedidos antes de introduc
 - Confirmación de incidencias y bloqueo de aprobación si quedan pendientes.
 - Aprobación y descarte locales.
 - Exportación CSV de un pedido o de toda la bandeja.
-- **Importación CSV** con validación básica, agrupación por pedido y detección de importaciones duplicadas.
+- **Importación CSV** con validación básica, agrupación por pedido y detección de importaciones duplicadas. Si el CSV no incluye número de pedido, agrupa las líneas por cliente dentro de esa importación (en vez de crear un pedido por línea). Cada nueva importación sin número genera un lote independiente.
 - Plantilla CSV descargable.
 - **Catálogo local de productos**: alta y eliminación manual, búsqueda, importación CSV y exportación CSV.
 - El catálogo se incluye en las copias JSON y se restaura junto con los pedidos.
