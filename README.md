@@ -76,3 +76,8 @@ Todos los servicios usados en la demo son gratuitos y estáticos. El producto no
 - Al confirmar una línea se registra fecha y hora local, se añade una entrada al historial y se muestra una notificación.
 - Las líneas confirmadas salen de la cola de revisión. Si se edita una línea o se vuelven a aplicar datos del catálogo, se reabre automáticamente para una nueva confirmación.
 - La fecha de confirmación se conserva en las copias JSON. La confirmación es manual y local; no equivale a una validación externa.
+
+
+### v31 · Claridad en la revisión
+- El botón de acción se identifica como «Confirmar incidencia» y las líneas revisadas muestran la fecha y hora de confirmación local.
+- La acción para volver a abrir una línea se denomina «Reabrir» para distinguirla de la confirmación.
