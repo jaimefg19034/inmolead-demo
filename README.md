@@ -7,6 +7,7 @@
 PedidoClaro explora cómo preparar, revisar y exportar pedidos antes de introducirlos en un ERP.
 
 ## Funciones disponibles en la demo
+- **Reglas de validación v28:** cantidad máxima por línea, tolerancia porcentual frente al precio del catálogo y tratamiento configurable de SKU desconocidos y referencias repetidas (avisar o bloquear). Se aplican tanto a la previsualización como a la importación efectiva de pedidos; se guardan localmente y viajan en la copia JSON.
 - **Cola de revisión v27:** panel operativo que agrupa líneas pendientes, incidencias declaradas, SKU ausentes del catálogo y diferencias de precio frente a la referencia local. Prioriza las excepciones y permite abrir directamente el pedido. Es una comprobación determinista local, no IA ni una garantía de detección de errores comerciales.
 - **Acciones masivas v26:** selección individual o de todos los pedidos visibles, exportación de la selección a CSV/Excel y aprobación múltiple con confirmación. Solo aprueba pedidos listos, sin incidencias y no cerrados; los demás quedan intactos. Es un cambio de estado local de demostración, no una comunicación con un ERP.
 - **Bandeja v25:** ordenación por prioridad/incidencias, importe ascendente o descendente y cliente A–Z. Exportación CSV o Excel de los resultados visibles respetando la búsqueda y el filtro, además de la exportación completa.
