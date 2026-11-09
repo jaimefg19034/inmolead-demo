@@ -38,7 +38,7 @@ def main():
         if token not in js: raise SystemExit("Falta funcionalidad JS: "+token)
     if "CACHE_NAME" not in sw or "PedidoClaro" not in manifest.get("name",""): raise SystemExit("PWA incompleta")
     import re
-    inner_html_targets=set(re.findall(r'\\$\\("([^"]+)"\\)\\.innerHTML\\s*=',js))
+    inner_html_targets=set(re.findall(r'\$\("([^"]+)"\)\.innerHTML\s*=',js))
     missing_inner_html=sorted(target for target in inner_html_targets if target not in p.ids)
     if missing_inner_html: raise SystemExit("Destino innerHTML inexistente en index.html: "+", ".join(missing_inner_html))
 
