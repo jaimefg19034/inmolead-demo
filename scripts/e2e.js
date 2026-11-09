@@ -75,11 +75,14 @@ const { spawn } = require("node:child_process");
       const saved = JSON.parse(localStorage.getItem("pedidoclaro-demo-v2") || "{}");
       return Array.isArray(saved.orders) && saved.orders.length === 6 && Array.isArray(saved.catalog) && saved.catalog.some(product => product.sku === "E2E-CSV");
     }, null, { timeout: 10000 });
-    await page.locator("#catalog-list [data-product-edit]").first().waitFor({ state: "visible" });
+    await page.waitForFunction(() => {
+      const saved = JSON.parse(localStorage.getItem("pedidoclaro-demo-v2") || "{}");
+      return Array.isArray(saved.catalog) && saved.catalog.some(product => product.sku === "E2E-CSV") && !saved.catalog.some(product => product.sku === "E2E-POST");
+    }, null, { timeout: 10000 });
     await page.locator("#catalog-search").fill("E2E-POST");
-    assert.equal(await page.locator("#catalog-list [data-product-edit]").count(), 0);
+    await page.waitForFunction(() => document.querySelectorAll("#catalog-list [data-product-edit]").length === 0, null, { timeout: 5000 });
     await page.locator("#catalog-search").fill("E2E-CSV");
-    assert.equal(await page.locator("#catalog-list [data-product-edit]").count(), 1);
+    await page.waitForFunction(() => document.querySelectorAll("#catalog-list [data-product-edit]").length === 1, null, { timeout: 5000 });
     const beforeInvalidRestore = await page.evaluate(() => localStorage.getItem("pedidoclaro-demo-v2"));
     await backupInput.setInputFiles({ name: "copia-invalida.json", mimeType: "application/json", buffer: Buffer.from('{"app":"Otro","version":2}') });
     await page.waitForFunction(() => /no es una copia válida/i.test(document.querySelector("#toast")?.textContent || ""), null, { timeout: 10000 });
