@@ -38,6 +38,11 @@ def main():
         if token not in js: raise SystemExit("Falta funcionalidad JS: "+token)
     if "CACHE_NAME" not in sw or "PedidoClaro" not in manifest.get("name",""): raise SystemExit("PWA incompleta")
     import re
+    inner_html_targets=set(re.findall(r'\\$\\("([^"]+)"\\)\\.innerHTML\\s*=',js))
+    missing_inner_html=sorted(target for target in inner_html_targets if target not in p.ids)
+    if missing_inner_html: raise SystemExit("Destino innerHTML inexistente en index.html: "+", ".join(missing_inner_html))
+
+    import re
     page_app=re.search(r'<script\s+src="(app\.js\?v=\d+)"',source)
     shell_app=re.search(r'"\./(app\.js\?v=\d+)"',sw)
     if not page_app or not shell_app or page_app.group(1)!=shell_app.group(1): raise SystemExit("La versión de app.js del service worker no coincide con index.html")
