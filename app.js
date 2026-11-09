@@ -326,28 +326,6 @@ function renderAnalytics(){
  const activityRows=[...activity.entries()].slice(0,7),activityMax=Math.max(1,...activityRows.map(x=>x[1]));
  $("analytics-activity").innerHTML=activityRows.length?activityRows.map(([name,n],i)=>'<div class="analytics-bar-row"><div class="analytics-bar-label"><span>'+esc(name)+'</span><b>'+n+' <small>pedidos</small></b></div><div class="analytics-track"><i class="blue" style="width:'+Math.max(3,n/activityMax*100)+'%"></i></div></div>').join(""):'<div class="analytics-empty">Sin actividad registrada.</div>';
 }
-function renderDashboardCharts(){
- const groups=[
-  {label:"Por revisar / listos",orders:state.orders.filter(o=>["review","ready"].includes(o.status)),color:"amber"},
-  {label:"Aprobados",orders:state.orders.filter(o=>o.status==="approved"),color:"green"},
-  {label:"Descartados",orders:state.orders.filter(o=>o.status==="rejected"),color:"slate"}
- ];
- const total=state.orders.length;
- const totals=groups.map(g=>({ ...g,count:g.orders.length,value:g.orders.reduce((n,o)=>n+sum(o),0)}));
- const maxCount=Math.max(1,...totals.map(g=>g.count)),maxValue=Math.max(1,...totals.map(g=>g.value));
- const pending=totals[0].count,approved=totals[1].count,p1=total?pending/total*100:0,p2=total?approved/total*100:0;
- const donut="conic-gradient(#e6a23c 0 "+p1+"%,#2caa78 "+p1+"% "+(p1+p2)+"%,#aab5c5 "+(p1+p2)+"% 100%)";
- const legend=totals.map((g,i)=>'<div class="status-legend-row"><span><i class="status-legend-dot seg-dot-'+i+'"></i>'+g.label+'</span><b>'+g.count+' <small>'+Math.round(total?g.count/total*100:0)+'%</small></b></div>').join("");
- const countBars=totals.map(g=>'<div class="dash-metric-row"><span>'+g.label+'</span><div class="dash-track"><i class="dash-fill '+g.color+'" style="width:'+(g.count?Math.max(4,g.count/maxCount*100):0)+'%"></i></div><b>'+g.count+'</b></div>').join("");
- const valueBars=totals.map(g=>'<div class="dash-metric-row"><span>'+g.label+'</span><div class="dash-track"><i class="dash-fill '+g.color+'" style="width:'+(g.value?Math.max(4,g.value/maxValue*100):0)+'%"></i></div><b>'+money(g.value)+'</b></div>').join("");
- $("dashboard-status").innerHTML=total
-  ?'<div class="dash-status-overview"><div class="status-chart-layout"><div class="status-donut" style="background:'+donut+'"><div class="status-donut-hole"><strong>'+total+'</strong><small>PEDIDOS</small></div></div><div class="status-chart-legend">'+legend+'</div></div><div class="dashboard-metric-charts"><div><div class="dash-chart-title">NÚMERO DE PEDIDOS</div>'+countBars+'</div><div><div class="dash-chart-title">VALOR ACUMULADO</div>'+valueBars+'</div></div></div>'
-  :'<div class="dashboard-empty"><b>Aún no hay pedidos</b><span>Importa una plantilla o crea un pedido de demostración para activar las gráficas.</span></div>';
- const clients=clientSummary().slice(0,5),max=Math.max(1,...clients.map(x=>x.total));
- $("dashboard-clients").innerHTML=clients.length
-  ?'<div class="dashboard-client-total"><span>Clientes con actividad</span><strong>'+clientSummary().length+'</strong></div><div class="dash-client-list">'+clients.map((x,i)=>'<div class="dash-client-row"><div class="dash-client-rank">'+String(i+1).padStart(2,"0")+'</div><div class="dash-client-info"><div><b>'+esc(x.name)+'</b><span>'+x.orders+' pedido'+(x.orders===1?"":"s")+'</span></div><div class="dash-client-track"><i style="width:'+Math.max(3,x.total/max*100)+'%"></i></div></div><strong>'+money(x.total)+'</strong></div>').join("")+'</div>'
-  :'<div class="dashboard-empty"><b>Sin actividad de clientes</b><span>El ranking aparecerá cuando haya pedidos en la bandeja.</span></div>';
-}
 function downloadFile(name,content,type){const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 function csvParse(text){
  const first=(text.split(/\r?\n/,1)[0]||"");let delimiter=";",best=-1;
@@ -600,7 +578,7 @@ function initHelpCenter(){
 }
 document.querySelectorAll("[data-trend-mode]").forEach(b=>b.addEventListener("click",()=>{trendMode=b.dataset.trendMode;renderTrendChart();}));
 document.querySelectorAll("[data-trend-range]").forEach(b=>b.addEventListener("click",()=>{trendLimit=b.dataset.trendRange==="all"?"all":Number(b.dataset.trendRange);renderTrendChart();}));
-function render(){renderList();renderCatalog();renderActivity();renderClients();renderAnalytics();renderTrendChart();renderDashboardCharts();}
+function render(){renderList();renderCatalog();renderActivity();renderClients();renderAnalytics();renderTrendChart();}
 function addOrder(client,channel,lines){state.counter=Math.max(state.counter,...state.orders.map(o=>Number(o.id.slice(3))||0))+1;const o={id:"PD-"+state.counter,client,date:"Ahora",channel,status:"review",lines};o.status=derived(o);state.orders.unshift(o);state.selected=o.id;log("Creó el pedido ficticio "+o.id,o.id);render();notify("Pedido ficticio añadido.");}
 function parseText(){const raw=$("raw-order").value.trim();if(!raw){notify("Pega un pedido de ejemplo primero.");return;}const client=(raw.match(/cliente\s*:\s*([^\n;]+)/i)||[])[1]?.trim()||"Cliente de texto",rules=[{re:/(\d+)\s*(?:cajas?\s+de\s+)?tornillos?/i,name:"Tornillo inox A2 5×50",sku:"TOR-INOX-550",unit:"caja",price:18.5},{re:/(\d+)\s*(?:unidades?|uds?\.?|ud\.?)\s+de\s+silicona/i,name:"Silicona neutra blanca 300 ml",sku:"SIL-NEU-BLA",unit:"ud.",price:4.1},{re:/(\d+)\s*(?:cajas?\s+de\s+)?tacos?/i,name:"Taco nylon universal 8 mm",sku:"TACO-UNIV-08",unit:"caja",price:7.2},{re:/(\d+)\s*(?:unidades?|uds?\.?|ud\.?)\s+de\s+discos?\s+de\s+corte/i,name:"Disco corte inox 115 mm",sku:"DIS-INOX-115",unit:"ud.",price:2.8}],lines=rules.flatMap(r=>{const m=raw.match(r.re);if(!m)return[];const product=state.catalog.find(p=>p.sku.toLocaleLowerCase("es")===r.sku.toLocaleLowerCase("es"));return [{name:product?.name||r.name,sku:r.sku,qty:+m[1],unit:product?.unit||r.unit,price:product?.price??r.price,issue:product?"Confirma la referencia y cantidad extraída":"Referencia no encontrada en el catálogo",checked:false}];});if(!lines.length){notify("No reconozco artículos. Prueba con tornillos, tacos o silicona.");return;}addOrder(client,"Texto pegado (parser local)",lines);$("raw-order").value="";}
 function view(name){document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id==="view-"+name));document.querySelectorAll(".navbtn").forEach(b=>b.classList.toggle("active",b.dataset.view===name));$("crumb").textContent={orders:"Bandeja de pedidos",catalog:"Catálogo de productos",clients:"Clientes",analytics:"Analítica",activity:"Actividad reciente",guide:"Cómo funciona"}[name];if(name==="catalog")renderCatalog();if(name==="clients")renderClients();if(name==="analytics"){renderAnalytics();renderTrendChart();}if(name==="guide")initHelpCenter();}
